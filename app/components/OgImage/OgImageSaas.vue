@@ -15,7 +15,7 @@ defineProps({
 })
 
 // nuxt-og-image renders server-side via Satori — gunakan URL absolut
-const logoUrl = 'https://NLFTs.dev/nlfts.webp'
+const logoUrl = 'https://nlfts.dev/nlfts.webp'
 </script>
 
 <template>

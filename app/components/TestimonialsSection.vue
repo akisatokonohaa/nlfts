@@ -7,10 +7,10 @@
           Testimonials
         </span>
         <h2 class="text-3xl font-medium text-gray-900 dark:text-white mt-3 mb-4 tracking-tight">
-          Trusted by developers
+          Di Percaya Oleh Pengembang Terbaik Indonesia
         </h2>
         <p class="text-sm text-gray-400 dark:text-gray-500 font-light">
-          Discover what the community says about our platform.
+          Temukan apa yang dikatakan komunitas tentang platform kami.
         </p>
       </div>
 

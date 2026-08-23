@@ -1,5 +1,20 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, ref } from 'vue'
+import {
+  computed,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from 'vue'
+
+type SearchItem = {
+  id: string
+  label: string
+  description?: string
+  icon?: string
+  to: string
+}
 
 const props = defineProps<{
   files: any[]
@@ -7,194 +22,882 @@ const props = defineProps<{
   links: any[]
 }>()
 
-const isOpen = defineModel<boolean>('open', { default: false })
+const isOpen = defineModel<boolean>('open', {
+  default: false,
+})
+
 const query = ref('')
+const input = ref<HTMLInputElement | null>(null)
+const selectedIndex = ref(0)
 
-// Manual Global Shortut (100% Reliable across all browsers)
-const handleShortcut = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-    e.preventDefault()
-    isOpen.value = !isOpen.value
-  }
-  if (e.key === 'Escape' && isOpen.value) {
-    isOpen.value = false
-  }
-}
+/* ---------------------------------------------
+ * Search data
+ * --------------------------------------------- */
 
-onMounted(() => {
-  window.addEventListener('keydown', handleShortcut)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleShortcut)
-})
-
-// Transform Search Sections (Content)
-const contentItems = computed(() => {
-  return (props.files || []).map(file => ({
+const contentItems = computed<SearchItem[]>(() =>
+  (props.files || []).map(file => ({
     id: file.id,
     label: file.title || 'Halaman',
-    description: file.titles?.join(' > ') || 'Dokumentasi',
+    description: file.titles?.join(' › ') || 'Dokumentasi',
     icon: 'i-lucide-hash',
-    to: file.id.split('#')[0] // Navigate to page
-  }))
-})
+    to: file.id.split('#')[0],
+  })),
+)
 
-// Transform Navigation into searchable items
-const navItems = computed(() => {
-  const flatten = (items: any[]): any[] => {
-    return items.reduce((acc, item) => {
-      acc.push({
+const navigationItems = computed<SearchItem[]>(() => {
+  const flatten = (items: any[]): SearchItem[] => {
+    return items.flatMap(item => [
+      {
         id: item.path,
-        label: item.title,
-        description: item.description || 'Lihat dokumentasi',
+        label: item.title || 'Halaman',
+        description: item.description || 'Dokumentasi',
         icon: 'i-lucide-file-text',
-        to: item.path
-      })
-      if (item.children) acc.push(...flatten(item.children))
-      return acc
-    }, [])
+        to: item.path,
+      },
+      ...(item.children
+        ? flatten(item.children)
+        : []),
+    ])
   }
+
   return flatten(props.navigation || [])
 })
 
-// Transform Quick Links
-const quickLinks = computed(() => (props.links || []).map(link => ({
-  ...link,
-  id: link.to,
-  description: 'Akses Cepat'
-})))
+const quickLinkItems = computed<SearchItem[]>(() =>
+  (props.links || []).map(link => ({
+    id: link.to,
+    label: link.label || link.title || 'Tautan',
+    description: 'Akses Cepat',
+    icon: link.icon || 'i-lucide-arrow-up-right',
+    to: link.to,
+  })),
+)
 
-// Groups for Command Palette (Only Visible when Searching)
-const groups = computed(() => {
-  if (!query.value.trim()) return []
+const allItems = computed(() => [
+  ...quickLinkItems.value,
+  ...navigationItems.value,
+  ...contentItems.value,
+])
 
-  // Combine everything: Search Sections, Navs, and Quick Links
-  const allItems = [
-    ...quickLinks.value, 
-    ...navItems.value,
-    ...contentItems.value
-  ]
-  
-  // Case-insensitive filtering
-  const q = query.value.toLowerCase()
-  const filtered = allItems
-    .filter(item => 
-      item.label.toLowerCase().includes(q) || 
-      item.description?.toLowerCase().includes(q)
-    )
-    .slice(0, 4) // Stick to the 4-item limit
+/* ---------------------------------------------
+ * Search
+ * --------------------------------------------- */
 
-  return [
-    {
-      id: 'results',
-      label: `Hasil Pencarian untuk "${query.value}"`,
-      items: filtered
-    }
-  ]
+const results = computed<SearchItem[]>(() => {
+  const search = query.value.trim().toLowerCase()
+
+  if (!search) return []
+
+  return allItems.value
+    .filter(item => {
+      const label = String(item.label || '').toLowerCase()
+      const description = String(
+        item.description || '',
+      ).toLowerCase()
+
+      return (
+        label.includes(search) ||
+        description.includes(search)
+      )
+    })
+    .slice(0, 8)
 })
 
-const onSelect = (item: any) => {
-  if (item && item.to) {
-    navigateTo(item.to)
-    isOpen.value = false
-    query.value = ''
+const hasResults = computed(() => results.value.length > 0)
+
+/* ---------------------------------------------
+ * Open / Close
+ * --------------------------------------------- */
+
+const openSearch = async () => {
+  isOpen.value = true
+
+  await nextTick()
+
+  input.value?.focus()
+}
+
+const closeSearch = () => {
+  isOpen.value = false
+  query.value = ''
+  selectedIndex.value = 0
+}
+
+/* ---------------------------------------------
+ * Select
+ * --------------------------------------------- */
+
+const selectItem = (item: SearchItem) => {
+  if (!item?.to) return
+
+  closeSearch()
+  navigateTo(item.to)
+}
+
+/* ---------------------------------------------
+ * Keyboard
+ * --------------------------------------------- */
+
+const handleKeyboard = (event: KeyboardEvent) => {
+  const key = event.key.toLowerCase()
+
+  if (
+    (event.metaKey || event.ctrlKey) &&
+    key === 'k'
+  ) {
+    event.preventDefault()
+
+    if (isOpen.value) {
+      closeSearch()
+    } else {
+      openSearch()
+    }
+
+    return
+  }
+
+  if (!isOpen.value) return
+
+  if (key === 'escape') {
+    event.preventDefault()
+    closeSearch()
+    return
+  }
+
+  if (key === 'arrowdown') {
+    event.preventDefault()
+
+    if (!results.value.length) return
+
+    selectedIndex.value =
+      (selectedIndex.value + 1) %
+      results.value.length
+
+    return
+  }
+
+  if (key === 'arrowup') {
+    event.preventDefault()
+
+    if (!results.value.length) return
+
+    selectedIndex.value =
+      selectedIndex.value <= 0
+        ? results.value.length - 1
+        : selectedIndex.value - 1
+
+    return
+  }
+
+  if (key === 'enter') {
+    event.preventDefault()
+
+    const item =
+      results.value[selectedIndex.value]
+
+    if (item) {
+      selectItem(item)
+    }
   }
 }
+
+watch(query, () => {
+  selectedIndex.value = 0
+})
+
+watch(isOpen, async value => {
+  if (!value) return
+
+  await nextTick()
+
+  input.value?.focus()
+})
+
+onMounted(() => {
+  window.addEventListener(
+    'keydown',
+    handleKeyboard,
+  )
+})
+
+onUnmounted(() => {
+  window.removeEventListener(
+    'keydown',
+    handleKeyboard,
+  )
+})
 </script>
 
 <template>
   <Teleport to="body">
-    <!-- Manual Modal Portal (Bypasses any UModal issues) -->
-    <div 
-      v-if="isOpen" 
-      class="fixed inset-0 z-[1000] flex items-start justify-center pt-0 sm:pt-[12vh] px-0 sm:px-6"
+    <Transition
+      enter-active-class="transition-opacity duration-150"
+      enter-from-class="opacity-0"
+      enter-to-class="opacity-100"
+      leave-active-class="transition-opacity duration-100"
+      leave-from-class="opacity-100"
+      leave-to-class="opacity-0"
     >
-      <!-- Backdrop Overlay (Visible only on desktop) -->
-      <div 
-        class="hidden sm:block fixed inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" 
-        @click="isOpen = false" 
-      />
-
-      <!-- Search Content Container -->
-      <div 
-        class="relative w-full h-full sm:h-auto sm:max-w-2xl bg-white dark:bg-[#020617] ring-0 sm:ring-1 ring-white/10 shadow-2xl rounded-none sm:rounded-2xl overflow-hidden border-none sm:border border-border/10 flex flex-col"
+      <div
+        v-if="isOpen"
+        class="fixed inset-0 z-[9999]"
       >
-        <!-- Mobile Header (Visible only on mobile) -->
-        <div class="sm:hidden flex items-center justify-between px-4 h-14 border-b border-border/40">
-           <span class="text-sm font-bold text-foreground">Search Assalaam</span>
-           <button 
-             class="p-2 -mr-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
-             @click="isOpen = false"
-           >
-             <UIcon name="i-lucide-x" class="w-5 h-5 text-muted-foreground" />
-           </button>
-        </div>
+        <!-- Backdrop -->
+        <button
+          type="button"
+          aria-label="Tutup pencarian"
+          class="
+            absolute inset-0
+            h-full w-full
+            cursor-default
+            bg-black/40
+            backdrop-blur-[2px]
+            dark:bg-black/75
+          "
+          @click="closeSearch"
+        />
 
-        <UCommandPalette
-          v-model:query="query"
-          :groups="groups"
-          :autofocus="true"
-          placeholder="Ketik untuk mencari..."
-          class="border-none w-full grow overflow-y-auto"
-          :ui="{
-            input: 'h-14 sm:h-14 px-6 border-b border-border/40 sm:border-b bg-transparent text-base font-medium placeholder:text-muted-foreground/30',
-            item: 'px-4 py-3 sm:px-4 rounded-none sm:rounded-xl transition-all duration-200 cursor-pointer data-[active=true]:bg-primary/10 data-[active=true]:ring-0 sm:data-[active=true]:ring-1 data-[active=true]:ring-primary/20 hover:bg-gray-100 dark:hover:bg-white/5',
-            itemLabel: 'text-[13px] font-bold text-foreground data-[active=true]:text-primary',
-            itemLabelSuffix: 'text-[11px] text-muted-foreground/50 ml-2 font-medium',
-            itemLeadingIcon: 'w-5 h-5 opacity-40 text-primary'
-          }"
-          @update:model-value="onSelect"
+        <!-- Search Palette -->
+        <div
+          class="
+            absolute left-1/2 top-0
+            flex h-full w-full
+            -translate-x-1/2
+            flex-col
+            overflow-hidden
+
+            bg-white
+            text-zinc-900
+
+            dark:bg-[#0d0d0d]
+            dark:text-zinc-100
+
+            sm:top-[12vh]
+            sm:h-auto
+            sm:max-h-[70vh]
+            sm:w-[calc(100%-48px)]
+            sm:max-w-[680px]
+
+            sm:rounded-[14px]
+
+            border
+            border-zinc-200
+            shadow-[0_25px_80px_rgba(0,0,0,0.18)]
+
+            dark:border-white/[0.09]
+            dark:shadow-[0_30px_100px_rgba(0,0,0,0.65)]
+          "
         >
-          <template #empty-state>
-            <div class="flex flex-col items-center justify-center py-20 text-center px-6">
-              <div class="w-16 h-16 rounded-3xl bg-secondary/10 flex items-center justify-center mb-6 ring-1 ring-secondary/20">
-                <UIcon :name="query ? 'i-lucide-search-x' : 'i-lucide-search'" class="w-8 h-8 text-secondary/60" />
-              </div>
-              <p v-if="!query" class="text-sm font-semibold text-foreground mb-1">Cari Informasi Assalaam...</p>
-              <p v-else class="text-sm font-semibold text-foreground mb-1">Tidak ada hasil ditemukan</p>
-              <p class="text-xs text-muted-foreground max-w-[240px]">
-                {{ query ? 'Gunakan kata kunci lain atau periksa ejaan.' : 'Cari jurusan, berita, atau informasi pendaftaran.' }}
+
+          <!-- Search Input -->
+          <div
+            class="
+              flex h-[64px]
+              shrink-0
+              items-center
+
+              border-b
+              border-zinc-200
+
+              px-5
+
+              dark:border-white/[0.07]
+            "
+          >
+            <UIcon
+              name="i-lucide-search"
+              class="
+                mr-3
+                size-[18px]
+                shrink-0
+                text-zinc-400
+
+                dark:text-white/30
+              "
+            />
+
+            <input
+              ref="input"
+              v-model="query"
+              type="search"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Cari dokumentasi..."
+              class="
+                h-full
+                min-w-0
+                flex-1
+                bg-transparent
+                text-[15px]
+                font-medium
+                tracking-[-0.01em]
+
+                text-zinc-900
+                outline-none
+
+                placeholder:text-zinc-400
+
+                dark:text-white
+                dark:placeholder:text-white/25
+              "
+            />
+
+            <!-- Desktop ESC -->
+            <button
+              type="button"
+              class="
+                ml-3
+                hidden
+                rounded-md
+                border
+                border-zinc-200
+                bg-zinc-50
+                px-2
+                py-1
+                text-[10px]
+                font-medium
+                text-zinc-400
+
+                hover:bg-zinc-100
+
+                dark:border-white/[0.08]
+                dark:bg-white/[0.025]
+                dark:text-white/30
+                dark:hover:bg-white/[0.05]
+
+                sm:block
+              "
+              @click="closeSearch"
+            >
+              ESC
+            </button>
+
+            <!-- Mobile close -->
+            <button
+              type="button"
+              class="
+                ml-2
+                rounded-md
+                p-1
+
+                text-zinc-400
+                hover:bg-zinc-100
+                hover:text-zinc-700
+
+                dark:text-white/30
+                dark:hover:bg-white/[0.06]
+                dark:hover:text-white/70
+
+                sm:hidden
+              "
+              aria-label="Tutup"
+              @click="closeSearch"
+            >
+              <UIcon
+                name="i-lucide-x"
+                class="size-5"
+              />
+            </button>
+          </div>
+
+          <!-- Results -->
+          <div
+            class="
+              min-h-0
+              flex-1
+              overflow-y-auto
+              overscroll-contain
+              p-2
+            "
+          >
+
+            <!-- Initial -->
+            <div
+              v-if="!query.trim()"
+              class="
+                flex
+                min-h-[240px]
+                flex-col
+                items-center
+                justify-center
+                px-6
+                text-center
+              "
+            >
+              <UIcon
+                name="i-lucide-search"
+                class="
+                  mb-4
+                  size-5
+                  text-zinc-300
+
+                  dark:text-white/15
+                "
+              />
+
+              <p
+                class="
+                  text-[13px]
+                  font-medium
+
+                  text-zinc-600
+
+                  dark:text-white/55
+                "
+              >
+                Cari dokumentasi
+              </p>
+
+              <p
+                class="
+                  mt-1
+                  max-w-[280px]
+                  text-[11px]
+                  leading-relaxed
+
+                  text-zinc-400
+
+                  dark:text-white/20
+                "
+              >
+                Cari halaman, dokumentasi,
+                atau informasi lainnya.
               </p>
             </div>
-          </template>
-        </UCommandPalette>
 
-        <!-- Serious Footer -->
-        <div class="hidden sm:flex items-center justify-between px-6 py-4 border-t border-border/40 bg-gray-50/30 dark:bg-white/[0.02] shrink-0">
-          <div class="flex items-center gap-5">
-             <div class="flex items-center gap-2">
-               <span class="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground/60">Search by</span>
-               <div class="flex items-center gap-1">
-                 <UIcon name="i-simple-icons-algolia" class="w-5 h-5 text-[#5468ff]" />
-                 <span class="text-[14px] font-extrabold text-[#5468ff] tracking-tighter">algolia</span>
-               </div>
-             </div>
-          </div>
+            <!-- No results -->
+            <div
+              v-else-if="!hasResults"
+              class="
+                flex
+                min-h-[240px]
+                flex-col
+                items-center
+                justify-center
+                px-6
+                text-center
+              "
+            >
+              <UIcon
+                name="i-lucide-search-x"
+                class="
+                  mb-4
+                  size-5
 
-          <div class="flex items-center gap-4 opacity-60">
-             <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-muted/40 translate-y-px">
-               <UKbd value="enter" size="sm" class="bg-transparent border-none shadow-none text-[9px] font-mono leading-none" />
-               <span class="text-[10px] font-bold uppercase tracking-widest translate-y-[0.5px]">Select</span>
-             </div>
-             <div class="flex items-center gap-1.5 px-2 py-1 rounded bg-muted/40 translate-y-px">
-               <UKbd value="esc" size="sm" class="bg-transparent border-none shadow-none text-[9px] font-mono leading-none" />
-               <span class="text-[10px] font-bold uppercase tracking-widest translate-y-[0.5px]">Close</span>
-             </div>
-          </div>
-        </div>
+                  text-zinc-300
 
-        <!-- Mobile Brand (Visible only on mobile) -->
-        <div class="sm:hidden flex items-center justify-center py-5 border-t border-border/10">
-           <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black uppercase tracking-[0.1em] text-muted-foreground/60">Search by</span>
-              <div class="flex items-center gap-1">
-                <UIcon name="i-simple-icons-algolia" class="w-5 h-5 text-[#5468ff]" />
-                <span class="text-[14px] font-extrabold text-[#5468ff] tracking-tighter">algolia</span>
+                  dark:text-white/15
+                "
+              />
+
+              <p
+                class="
+                  text-[13px]
+                  font-medium
+
+                  text-zinc-600
+
+                  dark:text-white/55
+                "
+              >
+                Tidak ada hasil
+              </p>
+
+              <p
+                class="
+                  mt-1
+                  max-w-[280px]
+                  text-[11px]
+                  leading-relaxed
+
+                  text-zinc-400
+
+                  dark:text-white/20
+                "
+              >
+                Tidak menemukan apa pun untuk
+                "{{ query }}".
+              </p>
+            </div>
+
+            <!-- Search results -->
+            <div v-else>
+              <div
+                class="
+                  px-3
+                  pb-2
+                  pt-2
+                  text-[9px]
+                  font-semibold
+                  uppercase
+                  tracking-[0.16em]
+
+                  text-zinc-400
+
+                  dark:text-white/20
+                "
+              >
+                Hasil Pencarian
               </div>
-           </div>
+
+              <button
+                v-for="(item, index) in results"
+                :key="item.id"
+                type="button"
+                class="
+                  group
+                  flex
+                  w-full
+                  items-center
+                  gap-3
+                  rounded-[9px]
+                  px-3
+                  py-3
+                  text-left
+                  outline-none
+                  transition-none
+                "
+                :class="
+                  selectedIndex === index
+                    ? `
+                      bg-zinc-100
+                      dark:bg-white/[0.07]
+                    `
+                    : `
+                      hover:bg-zinc-50
+                      dark:hover:bg-white/[0.04]
+                    `
+                "
+                @mouseenter="
+                  selectedIndex = index
+                "
+                @click="selectItem(item)"
+              >
+                <!-- Icon -->
+                <div
+                  class="
+                    flex
+                    size-8
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-md
+
+                    border
+                    border-zinc-200
+                    bg-zinc-50
+
+                    dark:border-white/[0.07]
+                    dark:bg-white/[0.025]
+                  "
+                >
+                  <UIcon
+                    :name="
+                      item.icon ||
+                      'i-lucide-file-text'
+                    "
+                    class="
+                      size-4
+
+                      text-zinc-400
+
+                      dark:text-white/30
+                    "
+                  />
+                </div>
+
+                <!-- Text -->
+                <div
+                  class="
+                    min-w-0
+                    flex-1
+                  "
+                >
+                  <div
+                    class="
+                      truncate
+                      text-[13px]
+                      font-medium
+                    "
+                    :class="
+                      selectedIndex === index
+                        ? `
+                          text-zinc-900
+                          dark:text-white
+                        `
+                        : `
+                          text-zinc-700
+                          dark:text-white/70
+                        `
+                    "
+                  >
+                    {{ item.label }}
+                  </div>
+
+                  <div
+                    v-if="item.description"
+                    class="
+                      mt-0.5
+                      truncate
+                      text-[11px]
+
+                      text-zinc-400
+
+                      dark:text-white/25
+                    "
+                  >
+                    {{ item.description }}
+                  </div>
+                </div>
+
+                <!-- Arrow -->
+                <UIcon
+                  v-if="selectedIndex === index"
+                  name="i-lucide-arrow-up-right"
+                  class="
+                    size-3.5
+                    shrink-0
+
+                    text-zinc-400
+
+                    dark:text-white/25
+                  "
+                />
+              </button>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div
+            class="
+              flex
+              h-[48px]
+              shrink-0
+              items-center
+              justify-between
+
+              border-t
+              border-zinc-200
+
+              px-4
+
+              dark:border-white/[0.07]
+            "
+          >
+            <!-- Algolia -->
+            <div
+              class="
+                flex
+                items-center
+                gap-2
+
+                text-zinc-400
+
+                dark:text-white/25
+              "
+            >
+              <span
+                class="
+                  text-[9px]
+                  font-medium
+                  uppercase
+                  tracking-[0.13em]
+                "
+              >
+                Search by
+              </span>
+
+              <div
+                class="
+                  flex
+                  items-center
+                  gap-1.5
+                "
+              >
+                <UIcon
+                  name="i-simple-icons-algolia"
+                  class="
+                    size-3.5
+
+                    text-zinc-500
+
+                    dark:text-white/35
+                  "
+                />
+
+                <span
+                  class="
+                    text-[11px]
+                    font-semibold
+                    tracking-tight
+
+                    text-zinc-500
+
+                    dark:text-white/40
+                  "
+                >
+                  algolia
+                </span>
+              </div>
+            </div>
+
+            <!-- Keyboard -->
+            <div
+              class="
+                hidden
+                items-center
+                gap-3
+
+                sm:flex
+              "
+            >
+              <!-- Navigation -->
+              <div
+                class="
+                  flex
+                  items-center
+                  gap-1.5
+                "
+              >
+                <kbd
+                  class="
+                    rounded
+                    border
+                    border-zinc-200
+                    bg-zinc-50
+                    px-1.5
+                    py-0.5
+                    font-mono
+                    text-[9px]
+                    text-zinc-400
+
+                    dark:border-white/[0.08]
+                    dark:bg-white/[0.035]
+                    dark:text-white/35
+                  "
+                >
+                  ↑
+                </kbd>
+
+                <kbd
+                  class="
+                    rounded
+                    border
+                    border-zinc-200
+                    bg-zinc-50
+                    px-1.5
+                    py-0.5
+                    font-mono
+                    text-[9px]
+                    text-zinc-400
+
+                    dark:border-white/[0.08]
+                    dark:bg-white/[0.035]
+                    dark:text-white/35
+                  "
+                >
+                  ↓
+                </kbd>
+
+                <span
+                  class="
+                    ml-0.5
+                    text-[10px]
+
+                    text-zinc-400
+
+                    dark:text-white/20
+                  "
+                >
+                  Navigate
+                </span>
+              </div>
+
+              <!-- Select -->
+              <div
+                class="
+                  flex
+                  items-center
+                  gap-1.5
+                "
+              >
+                <kbd
+                  class="
+                    rounded
+                    border
+                    border-zinc-200
+                    bg-zinc-50
+                    px-1.5
+                    py-0.5
+                    font-mono
+                    text-[9px]
+                    text-zinc-400
+
+                    dark:border-white/[0.08]
+                    dark:bg-white/[0.035]
+                    dark:text-white/35
+                  "
+                >
+                  ↵
+                </kbd>
+
+                <span
+                  class="
+                    text-[10px]
+
+                    text-zinc-400
+
+                    dark:text-white/20
+                  "
+                >
+                  Select
+                </span>
+              </div>
+
+              <!-- Close -->
+              <div
+                class="
+                  flex
+                  items-center
+                  gap-1.5
+                "
+              >
+                <kbd
+                  class="
+                    rounded
+                    border
+                    border-zinc-200
+                    bg-zinc-50
+                    px-1.5
+                    py-0.5
+                    font-mono
+                    text-[9px]
+                    text-zinc-400
+
+                    dark:border-white/[0.08]
+                    dark:bg-white/[0.035]
+                    dark:text-white/35
+                  "
+                >
+                  ESC
+                </kbd>
+
+                <span
+                  class="
+                    text-[10px]
+
+                    text-zinc-400
+
+                    dark:text-white/20
+                  "
+                >
+                  Close
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

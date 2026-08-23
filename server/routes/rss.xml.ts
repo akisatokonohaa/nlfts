@@ -1,7 +1,7 @@
 import { queryCollection } from '@nuxt/content/server'
 
 export default defineEventHandler(async (event) => {
-  const baseUrl = 'https://NLFTs.dev'
+  const baseUrl = 'https://nlfts.dev'
 
   let posts: any[] = []
   try {

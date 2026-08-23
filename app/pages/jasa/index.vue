@@ -153,7 +153,7 @@
             </div>
             
             <div class="pt-8">
-              <a href="#" class="inline-flex h-10 w-full sm:w-auto items-center justify-center rounded-md border border-zinc-200 px-4 text-xs font-medium text-black transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-white dark:hover:bg-zinc-900">
+              <a href="/contact" class="inline-flex h-10 w-full sm:w-auto items-center justify-center rounded-md border border-zinc-200 px-4 text-xs font-medium text-black transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-white dark:hover:bg-zinc-900">
                 Pelajari Layanan Enterprise
               </a>
             </div>

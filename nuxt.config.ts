@@ -40,7 +40,8 @@ export default defineNuxtConfig({
     turnstileSecretKey: process.env.SECRET_KEY || '',
     resendApiKey: process.env.RESEND_API_KEY || '',
     public: {
-      turnstileSiteKey: process.env.SITE_KEY || ''
+      turnstileSiteKey: process.env.SITE_KEY || '',
+      unsplashAccessKey: process.env.NUXT_PUBLIC_UNSPLASH_ACCESS_KEY || ''
     }
   },
 

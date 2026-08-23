@@ -1,141 +1,57 @@
-<template>
-  <div class="min-h-screen bg-gray-50 dark:bg-[#09090b] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header dengan toggle dark/light -->
-      <div class="flex justify-between items-center mb-10">
-        <div class="text-left">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 text-xs font-medium tracking-wider uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            {{ contributors.length }} Kontributor
-          </div>
-        </div>
-      </div>
-
-      <!-- Judul halaman -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl sm:text-5xl font-light text-gray-900 dark:text-white tracking-tight">
-          Memberes
-        </h1>
-        <p class="mt-2 text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto">
-          Kenali para kontributor dan semangat mereka
-        </p>
-      </div>
-
-      <!-- Search bar -->
-      <div class="max-w-md mx-auto mb-10">
-        <div class="relative">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari kontributor..."
-            class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/30 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200"
-          />
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Grid Kontributor -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div
-          v-for="contributor in filteredContributors"
-          :key="contributor.name"
-          class="group bg-white dark:bg-zinc-900/60 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm hover:shadow-md dark:hover:shadow-gray-800/30 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 p-5 flex flex-col"
-        >
-          <!-- Avatar & Nama -->
-          <div class="flex items-start gap-4">
-            <img
-              :src="contributor.avatar"
-              :alt="contributor.name"
-              class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 flex-shrink-0"
-              loading="lazy"
-            />
-            <div class="flex-1 min-w-0">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">
-                {{ contributor.name }}
-              </h3>
-              <!-- Moto (per orang) -->
-              <p class="text-xs text-gray-500 dark:text-gray-400 italic line-clamp-2 mt-0.5">
-                “{{ contributor.moto }}”
-              </p>
-            </div>
-          </div>
-
-          <!-- Tech Stack (per orang) -->
-          <TechStack :items="contributor.techStack" />
-        </div>
-      </div>
-
-      <!-- Empty state -->
-      <div v-if="filteredContributors.length === 0" class="text-center py-16">
-        <p class="text-gray-400 dark:text-gray-500 text-sm">Tidak ada kontributor yang cocok</p>
-      </div>
-
-      <!-- Footer -->
-      <div class="mt-16 text-center text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-800 pt-6">
-        <span>© {{ new Date().getFullYear() }} — Memberes</span>
-        <span class="mx-2">·</span>
-        <span>{{ contributors.length }} kontributor</span>
-        <span class="mx-2">·</span>
-        <span class="inline-flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          {{ isDark ? 'Gelap' : 'Terang' }}
-        </span>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-// ============================================================
-// 1. METADATA (useHead) dengan moto global (opsional)
-// ============================================================
-useSeoMeta({
-  title: 'Members — Kontributor NLFTs, Developer Open Source Indonesia',
-  ogTitle: 'Members — Kontributor NLFTs, Developer Open Source Indonesia',
-  description: 'Kenali 25+ kontributor aktif NLFTs — developer Indonesia yang membangun ekosistem open-source dengan stack modern: Nuxt, Vue, TypeScript, Laravel, Flutter, dan banyak lagi.',
-  ogDescription: 'Daftar kontributor NLFTs: developer open-source Indonesia dengan berbagai keahlian teknologi modern.',
-  ogImage: 'https://nlfts.dev/og/members.png',
-  ogImageWidth: 1200,
-  ogImageHeight: 630,
-  ogImageType: 'image/png',
-  ogUrl: 'https://nlfts.dev/members',
-  ogType: 'website',
-  twitterCard: 'summary_large_image',
-  twitterTitle: 'Members NLFTs — Developer Open Source Indonesia',
-  twitterDescription: '25+ kontributor aktif NLFTs dengan stack Nuxt, Vue, TypeScript, dan lainnya.',
-  twitterImage: 'https://nlfts.dev/og/members.png',
-})
 
-useHead({
-  link: [
-    { rel: 'canonical', href: 'https://memberes.com/kontributor' }
-  ]
-})
+type Contributor = {
+  id: number
+  name: string
+  avatar: string
+  moto: string
+  role: string
+  focus: string
+  github: string
+  techStack: string[]
+}
 
-// ============================================================
-// 2. DUMMY DATA KONTRIBUTOR (masing-masing punya moto & techStack)
-// ============================================================
+type ContributorInput = Omit<Contributor, 'id' | 'role' | 'focus' | 'github'> & {
+  role?: string
+  focus?: string
+  github?: string
+}
 
-const contributors = [
-  {
-    name: 'davingm',
-    avatar: 'https://avatars.githubusercontent.com/u/228851591?v=4',
-    moto: 'Kode adalah puisi, dan saya menulis epik',
-    techStack: ['Vue', 'Nuxt', 'TypeScript', 'Tailwind']
-  },
+const contributors: ContributorInput[] = [
   {
     name: 'Nairha',
     avatar: 'https://avatars.githubusercontent.com/u/204519754?s=130&v=4',
     moto: 'Desain yang indah dimulai dari pikiran yang jernih',
-    techStack: ['framer', 'angular', 'typescript', 'once ui']
+    techStack: ['framer', 'angular', 'typescript', 'once ui'],
+    focus: 'cloud engineering',
+    role: "Founder"
   },
-   {
+  {
+    name: 'davingm',
+    avatar: 'https://avatars.githubusercontent.com/u/228851591?v=4',
+    moto: 'Kode adalah puisi, dan saya menulis yang indah',
+    techStack: ['Vue', 'Nuxt', 'TypeScript', 'Tailwind'],
+    role: 'Maintainer',
+    focus: 'Developer Experience',
+    github: 'https://github.com/davingm'
+  },
+  {
     name: 'sidikqst',
     avatar: 'https://avatars.githubusercontent.com/u/230048582?s=130&v=4',
-    moto: 'Cloud-native dari awal',
-    techStack: ['AWS', 'Terraform', 'nuxt', 'Kubernetes', 'vuejs']
+    moto: 'Tidak ada yang tidak mungkin bagiku',
+    techStack: ['AWS', 'Terraform', 'nuxt', 'Kubernetes', 'vuejs'],
+    role: 'Nuxt team',
+    focus: 'Nuxt Core System',
+    github: 'https://github.com/davingm'
+  },
+  {
+    name: 'Radietya',
+    avatar: 'https://avatars.githubusercontent.com/u/226198461?s=130&v=4',
+    moto: 'Backend yang tangguh, frontend yang indah',
+    techStack: ['laravel', 'django', 'python', 'react', 'php', 'javascript'],
+    role: 'CTO NLFTs',
+    focus: 'Developer Experience',
+    github: 'https://github.com/davingm'
   },
   {
     name: 'Cery',
@@ -228,12 +144,6 @@ const contributors = [
     techStack: ['nuxt', 'java', 'tailwind', 'postgresql']
   },
   {
-    name: 'Radietya',
-    avatar: 'https://avatars.githubusercontent.com/u/226198461?s=130&v=4',
-    moto: 'Backend yang tangguh, frontend yang indah',
-    techStack: ['laravel', 'django', 'python', 'react', 'php', 'javascript']
-  },
-  {
     name: 'Fakhri',
     avatar: 'https://avatars.githubusercontent.com/u/228840381?s=130&v=4',
     moto: 'Kode adalah alat, bukan tujuan',
@@ -268,100 +178,905 @@ const contributors = [
     avatar: 'https://avatars.githubusercontent.com/u/182593937?s=130&v=4',
     moto: 'フロントエンド開発とUI/UXデザインに特に興味があります。 @NLFTs @Vercel',
     techStack: ['react', 'next', 'tailwind', 'typescript', 'javascript']
-  },
+  }
 ]
 
-// ============================================================
-// 3. DARK / LIGHT MODE (hitam pekat untuk dark)
-// ============================================================
-const isDark = ref(false)
+const members: Contributor[] = contributors.map((contributor, index) => ({
+  ...contributor,
+  id: index + 1,
+  role: contributor.role || 'Contributor',
+  focus: contributor.focus || contributor.techStack[0] || 'Open source',
+  github: contributor.github || `https://github.com/${contributor.name}`
+}))
 
-onMounted(() => {
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark' || saved === 'light') {
-    isDark.value = saved === 'dark'
-  } else {
-    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
-  applyTheme(isDark.value)
+const search = ref('')
+const activeRole = ref('All')
+const currentPage = ref(1)
+const pageSize = 10
+
+const roles = computed(() => ['All', ...new Set(members.map(member => member.role))])
+
+const filteredMembers = computed(() => {
+  const query = search.value.trim().toLowerCase()
+
+  return members.filter((member) => {
+    const matchesRole = activeRole.value === 'All' || member.role === activeRole.value
+    const matchesSearch = !query || [member.name, member.moto, member.role, member.focus, ...member.techStack]
+      .join(' ')
+      .toLowerCase()
+      .includes(query)
+
+    return matchesRole && matchesSearch
+  })
 })
 
-const toggleDarkMode = () => {
-  isDark.value = !isDark.value
-  applyTheme(isDark.value)
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredMembers.value.length / pageSize)))
+
+const paginatedMembers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredMembers.value.slice(start, start + pageSize)
+})
+
+const setRole = (role: string) => {
+  activeRole.value = role
+  currentPage.value = 1
 }
 
-const applyTheme = (dark: boolean) => {
-  if (dark) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
+const setPage = (page: number) => {
+  currentPage.value = Math.min(Math.max(page, 1), totalPages.value)
 }
 
-// ============================================================
-// 4. PENCARIAN (berdasarkan nama, moto, atau tech stack)
-// ============================================================
-const searchQuery = ref('')
-
-const filteredContributors = computed(() => {
-  if (!searchQuery.value.trim()) return contributors
-  const q = searchQuery.value.toLowerCase().trim()
-  return contributors.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.moto.toLowerCase().includes(q) ||
-    c.techStack.some(t => t.toLowerCase().includes(q))
-  )
+watch(search, () => {
+  currentPage.value = 1
 })
+
+watch(totalPages, (pageCount) => {
+  if (currentPage.value > pageCount) currentPage.value = pageCount
+})
+
+/**
+ * Hanya teknologi yang benar-benar kita izinkan
+ * untuk dirender sebagai Simple Icons.
+ */
+const techIcons: Record<string, string> = {
+  vue: 'i-simple-icons-vuedotjs',
+  vuejs: 'i-simple-icons-vuedotjs',
+
+  nuxt: 'i-simple-icons-nuxt',
+  nuxtjs: 'i-simple-icons-nuxt',
+
+  typescript: 'i-simple-icons-typescript',
+  javascript: 'i-simple-icons-javascript',
+
+  react: 'i-simple-icons-react',
+
+  next: 'i-simple-icons-nextdotjs',
+
+  angular: 'i-simple-icons-angular',
+
+  tailwind: 'i-simple-icons-tailwindcss',
+
+  html: 'i-simple-icons-html5',
+  css: 'i-simple-icons-css3',
+  sass: 'i-simple-icons-sass',
+
+  'node.js': 'i-simple-icons-nodedotjs',
+  node: 'i-simple-icons-nodedotjs',
+
+  php: 'i-simple-icons-php',
+  laravel: 'i-simple-icons-laravel',
+  livewire: 'i-simple-icons-livewire',
+
+  python: 'i-simple-icons-python',
+  django: 'i-simple-icons-django',
+
+  rust: 'i-simple-icons-rust',
+  go: 'i-simple-icons-go',
+
+  haskell: 'i-simple-icons-haskell',
+  scala: 'i-simple-icons-scala',
+
+  java: 'i-simple-icons-openjdk',
+
+  aws: 'i-simple-icons-amazonwebservices',
+  terraform: 'i-simple-icons-terraform',
+  kubernetes: 'i-simple-icons-kubernetes',
+  docker: 'i-simple-icons-docker',
+
+  kafka: 'i-simple-icons-apachekafka',
+  redis: 'i-simple-icons-redis',
+
+  mysql: 'i-simple-icons-mysql',
+  postgresql: 'i-simple-icons-postgresql',
+
+  flutter: 'i-simple-icons-flutter',
+  dart: 'i-simple-icons-dart',
+  firebase: 'i-simple-icons-firebase',
+
+  graphql: 'i-simple-icons-graphql',
+
+  git: 'i-simple-icons-git',
+
+  jest: 'i-simple-icons-jest',
+
+  framer: 'i-simple-icons-framer',
+
+  astrojs: 'i-simple-icons-astro',
+
+  threejs: 'i-simple-icons-threedotjs',
+
+  tableau: 'i-simple-icons-tableau',
+
+  tensorflow: 'i-simple-icons-tensorflow',
+
+  hexo: 'i-simple-icons-hexo',
+
+  pyqt: 'i-simple-icons-qt',
+
+  'chakra ui': 'i-simple-icons-chakraui',
+
+  net: 'i-simple-icons-dotnet'
+}
+
+
+const getTechIcon = (tech: string) => {
+  return techIcons[tech.trim().toLowerCase()] ?? 'i-lucide-code-2'
+}
+
 </script>
 
-<!-- Ikon Sun & Moon -->
-<script lang="ts">
-const SunIcon = defineComponent({
-  setup() {
-    return () => h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      fill: 'none',
-      viewBox: '0 0 24 24',
-      stroke: 'currentColor',
-      class: 'w-5 h-5'
-    }, [
-      h('path', {
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'stroke-width': 2,
-        d: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
-      })
-    ])
-  }
-})
+<template>
+  <main
+    ref="page"
+    class="
+      min-h-screen
+      overflow-x-hidden
 
-const MoonIcon = defineComponent({
-  setup() {
-    return () => h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      fill: 'none',
-      viewBox: '0 0 24 24',
-      stroke: 'currentColor',
-      class: 'w-5 h-5'
-    }, [
-      h('path', {
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'stroke-width': 2,
-        d: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
-      })
-    ])
-  }
-})
-</script>
+      bg-white
+      text-zinc-950
+
+      dark:bg-[#0a0a0a]
+      dark:text-white
+    "
+  >
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header
+      class="
+        mx-auto
+        max-w-[1200px]
+        px-5
+        pb-14
+        pt-20
+
+        sm:px-8
+        sm:pt-28
+
+        lg:px-10
+        lg:pb-16
+      "
+    >
+      <p
+        data-label
+        class="
+          mb-5
+          text-[10px]
+          font-medium
+          uppercase
+          tracking-[0.2em]
+
+          text-zinc-400
+
+          dark:text-zinc-500
+        "
+      >
+        Community
+      </p>
+
+      <h1
+        data-title
+        class="
+          text-[clamp(3.5rem,9vw,7rem)]
+          font-semibold
+          leading-[0.9]
+          tracking-[-0.075em]
+        "
+      >
+        Members
+      </h1>
+
+      <div
+        data-description
+        class="
+          mt-7
+          flex
+          max-w-[720px]
+          flex-col
+          gap-3
+
+          sm:flex-row
+          sm:items-end
+          sm:justify-between
+        "
+      >
+        <p
+          class="
+            max-w-[580px]
+            text-[15px]
+            leading-7
+
+            text-zinc-500
+
+            dark:text-zinc-400
+          "
+        >
+          Temui developer dan pembuat produk
+          yang menjadi bagian dari komunitas.
+        </p>
+
+        <span
+          class="
+            shrink-0
+            text-xs
+            tabular-nums
+
+            text-zinc-400
+
+            dark:text-zinc-500
+          "
+        >
+          {{ members.length }} members
+        </span>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         CONTROLS
+    ====================================================== -->
+
+    <section
+      data-controls
+      class="
+        mx-auto
+        max-w-[1200px]
+        border-y
+        border-zinc-200
+
+        dark:border-white/[0.09]
+      "
+    >
+      <div
+        class="
+          flex
+          flex-col
+
+          lg:flex-row
+          lg:items-center
+        "
+      >
+        <!-- SEARCH -->
+
+        <div
+          class="
+            flex
+            h-14
+            shrink-0
+            items-center
+            gap-3
+
+            border-b
+            border-zinc-200
+            px-5
+
+            dark:border-white/[0.09]
+
+            sm:px-8
+
+            lg:w-[340px]
+            lg:border-b-0
+            lg:border-r
+            lg:px-5
+          "
+        >
+          <UIcon
+            name="i-lucide-search"
+            class="
+              size-4
+              shrink-0
+
+              text-zinc-400
+
+              dark:text-zinc-600
+            "
+          />
+
+          <input
+            v-model="search"
+            data-search
+            type="search"
+            autocomplete="off"
+            placeholder="Search members..."
+            class="
+              min-w-0
+              flex-1
+              bg-transparent
+              text-sm
+              outline-none
+
+              text-zinc-900
+              placeholder:text-zinc-400
+
+              dark:text-white
+              dark:placeholder:text-zinc-600
+            "
+          />
+
+          <kbd
+            class="
+              hidden
+              border
+              border-zinc-200
+              px-1.5
+              py-0.5
+              font-mono
+              text-[9px]
+              text-zinc-400
+
+              dark:border-white/[0.08]
+              dark:text-zinc-600
+
+              sm:block
+            "
+          >
+            /
+          </kbd>
+        </div>
+
+        <!-- ROLE FILTER -->
+
+        <div
+          class="
+            member-filter-scroll
+            flex
+            min-w-0
+            items-center
+            overflow-x-auto
+            px-5
+
+            sm:px-8
+
+            lg:px-5
+          "
+        >
+          <button
+            v-for="role in roles"
+            :key="role"
+            type="button"
+            class="
+              relative
+              h-14
+              shrink-0
+              px-3
+              text-xs
+              font-medium
+              transition-colors
+            "
+            :class="
+              activeRole === role
+                ? `
+                  text-zinc-950
+                  dark:text-white
+                `
+                : `
+                  text-zinc-400
+                  hover:text-zinc-800
+
+                  dark:text-zinc-500
+                  dark:hover:text-zinc-300
+                `
+            "
+            @click="setRole(role)"
+          >
+            {{ role }}
+
+            <span
+              v-if="activeRole === role"
+              class="
+                absolute
+                bottom-0
+                left-3
+                right-3
+                h-px
+
+                bg-zinc-950
+
+                dark:bg-white
+              "
+            />
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         TABLE HEADER
+    ====================================================== -->
+
+    <section
+      class="
+        mx-auto
+        max-w-[1200px]
+      "
+    >
+      <div
+        class="
+          hidden
+          grid-cols-[minmax(280px,2fr)_1fr_1fr_1.2fr_24px]
+          gap-6
+          border-b
+          border-zinc-200
+          px-5
+          py-3
+
+          text-[9px]
+          font-medium
+          uppercase
+          tracking-[0.18em]
+          text-zinc-400
+
+          dark:border-white/[0.09]
+          dark:text-zinc-600
+
+          sm:px-8
+
+          md:grid
+
+          lg:px-10
+        "
+      >
+        <span>Member</span>
+        <span>Role</span>
+        <span>Focus</span>
+        <span>Stack</span>
+        <span />
+      </div>
+
+      <!-- ===================================================
+           EMPTY STATE
+      ==================================================== -->
+
+      <div
+        v-if="paginatedMembers.length === 0"
+        class="
+          flex
+          min-h-[300px]
+          items-center
+          justify-center
+          border-b
+          border-zinc-200
+          text-sm
+          text-zinc-400
+
+          dark:border-white/[0.09]
+          dark:text-zinc-600
+        "
+      >
+        Tidak ada member yang cocok.
+      </div>
+
+      <!-- ===================================================
+           MEMBER ROW
+      ==================================================== -->
+
+      <article
+        v-for="member in paginatedMembers"
+        :key="member.id"
+        data-member-row
+        class="
+          group
+          border-b
+          border-zinc-200
+          px-5
+          py-6
+
+          dark:border-white/[0.09]
+
+          sm:px-8
+
+          md:grid
+          md:grid-cols-[minmax(280px,2fr)_1fr_1fr_1.2fr_24px]
+          md:items-center
+          md:gap-6
+          md:py-5
+
+          lg:px-10
+        "
+      >
+        <!-- MEMBER -->
+
+        <div
+          class="
+            flex
+            min-w-0
+            items-center
+            gap-4
+          "
+        >
+          <img
+            :src="member.avatar"
+            :alt="member.name"
+            loading="lazy"
+            decoding="async"
+            class="
+              size-11
+              shrink-0
+              rounded-full
+              object-cover
+              transition-all
+              duration-300
+            "
+          />
+
+          <div class="min-w-0">
+            <h2
+              class="
+                truncate
+                text-[14px]
+                font-medium
+                tracking-[-0.01em]
+              "
+            >
+              {{ member.name }}
+            </h2>
+
+            <p
+              class="
+                mt-1
+                truncate
+                text-xs
+
+                text-zinc-400
+
+                dark:text-zinc-600
+              "
+            >
+              {{ member.moto }}
+            </p>
+          </div>
+        </div>
+
+        <!-- MOBILE META -->
+
+        <div
+          class="
+            mt-4
+            flex
+            flex-wrap
+            gap-x-4
+            gap-y-1
+
+            md:hidden
+          "
+        >
+          <span
+            class="
+              text-xs
+
+              text-zinc-600
+
+              dark:text-zinc-400
+            "
+          >
+            {{ member.role }}
+          </span>
+
+          <span
+            class="
+              text-xs
+
+              text-zinc-400
+
+              dark:text-zinc-600
+            "
+          >
+            {{ member.focus }}
+          </span>
+        </div>
+
+        <!-- ROLE -->
+
+        <div
+          class="
+            hidden
+            text-sm
+
+            text-zinc-600
+
+            dark:text-zinc-400
+
+            md:block
+          "
+        >
+          {{ member.role }}
+        </div>
+
+        <!-- FOCUS -->
+
+        <div
+          class="
+            hidden
+            text-sm
+
+            text-zinc-400
+
+            dark:text-zinc-500
+
+            md:block
+          "
+        >
+          {{ member.focus }}
+        </div>
+
+        <!-- STACK WITH ICONS -->
+
+        <div
+          class="
+            mt-4
+            flex
+            min-w-0
+            items-center
+            gap-3
+
+            md:mt-0
+          "
+        >
+          <div
+            v-for="technology in member.techStack.slice(0, 4)"
+            :key="technology"
+            class="
+              group/tech
+              flex
+              size-6
+              shrink-0
+              items-center
+              justify-center
+            "
+            :title="technology"
+          >
+          <UIcon
+          :name="getTechIcon(technology)"
+          class="
+            size-4
+            transition-all
+            duration-200
+          "
+        />
+          </div>
+
+          <span
+            v-if="member.techStack.length > 4"
+            class="
+              text-[10px]
+              text-zinc-400
+
+              dark:text-zinc-600
+            "
+          >
+            +{{ member.techStack.length - 4 }}
+          </span>
+        </div>
+
+        <!-- ARROW -->
+
+        <div
+          class="
+            hidden
+
+            md:flex
+            md:justify-end
+          "
+        >
+          <a
+            :href="member.github"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="`Open ${member.name} on GitHub`"
+            class="
+              text-zinc-300
+              transition-all
+              duration-200
+
+              group-hover:translate-x-0.5
+              group-hover:text-zinc-900
+
+              dark:text-zinc-700
+              dark:group-hover:text-white
+            "
+          >
+            <UIcon
+              name="i-lucide-arrow-up-right"
+              class="size-4"
+            />
+          </a>
+        </div>
+      </article>
+    </section>
+
+    <!-- =====================================================
+         PAGINATION
+    ====================================================== -->
+
+    <nav
+      v-if="totalPages > 1"
+      class="
+        mx-auto
+        flex
+        max-w-[1200px]
+        items-center
+        justify-between
+        px-5
+        py-8
+
+        sm:px-8
+
+        lg:px-10
+      "
+    >
+      <button
+        type="button"
+        :disabled="currentPage === 1"
+        class="
+          flex
+          items-center
+          gap-2
+          text-xs
+
+          text-zinc-400
+          transition-colors
+          hover:text-zinc-950
+          disabled:pointer-events-none
+          disabled:opacity-30
+
+          dark:text-zinc-600
+          dark:hover:text-white
+        "
+        @click="setPage(currentPage - 1)"
+      >
+        <UIcon
+          name="i-lucide-arrow-left"
+          class="size-3.5"
+        />
+
+        Previous
+      </button>
+
+      <div class="flex items-center">
+        <button
+          v-for="number in totalPages"
+          :key="number"
+          type="button"
+          class="
+            size-8
+            text-xs
+            transition-colors
+          "
+          :class="
+            currentPage === number
+              ? `
+                text-zinc-950
+                dark:text-white
+              `
+              : `
+                text-zinc-400
+                hover:text-zinc-950
+
+                dark:text-zinc-600
+                dark:hover:text-white
+              `
+          "
+          @click="setPage(number)"
+        >
+          {{ number }}
+        </button>
+      </div>
+
+      <button
+        type="button"
+        :disabled="
+          currentPage === totalPages
+        "
+        class="
+          flex
+          items-center
+          gap-2
+          text-xs
+
+          text-zinc-400
+          transition-colors
+          hover:text-zinc-950
+          disabled:pointer-events-none
+          disabled:opacity-30
+
+          dark:text-zinc-600
+          dark:hover:text-white
+        "
+        @click="setPage(currentPage + 1)"
+      >
+        Next
+
+        <UIcon
+          name="i-lucide-arrow-right"
+          class="size-3.5"
+        />
+      </button>
+    </nav>
+  </main>
+</template>
 
 <style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+/* =========================================================
+ * CUSTOM HORIZONTAL SCROLLBAR
+ * ======================================================= */
+
+.member-filter-scroll {
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgb(212 212 216 / 0.8)
+    transparent;
+}
+
+.member-filter-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.member-filter-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.member-filter-scroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(212 212 216 / 0.8);
+}
+
+.member-filter-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(161 161 170 / 0.9);
+}
+
+/* Dark mode */
+
+:global(.dark)
+.member-filter-scroll {
+  scrollbar-color:
+    rgb(63 63 70 / 0.9)
+    transparent;
+}
+
+:global(.dark)
+.member-filter-scroll::-webkit-scrollbar-thumb {
+  background: rgb(63 63 70 / 0.9);
+}
+
+:global(.dark)
+.member-filter-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(82 82 91 / 1);
+}
+
+/* Search */
+
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-results-button,
+input[type='search']::-webkit-search-results-decoration {
+  appearance: none;
+}
+
+/* Reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .member-filter-scroll {
+    scroll-behavior: auto;
+  }
 }
 </style>
