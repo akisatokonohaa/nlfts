@@ -1,440 +1,612 @@
+<script setup lang="ts">
+import { nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+interface GalleryItem {
+  id: number
+  title: string
+  description: string
+  image: string
+  category: string
+  member: string
+  role: string
+  year: string
+  featured?: boolean
+  size?: 'large' | 'medium' | 'small'
+}
+
+const categories = [
+  'All',
+  'Web Design',
+  'Development',
+  'Branding',
+  'UI/UX',
+  'Creative'
+]
+
+const activeCategory = ref('All')
+const selectedItem = ref<GalleryItem | null>(null)
+
+const galleryItems: GalleryItem[] = [
+  {
+    id: 1,
+    title: 'Arc Studio',
+    description: 'Minimal digital studio experience with a strong editorial direction.',
+    image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1800&q=85',
+    category: 'Web Design',
+    member: 'Davin',
+    role: 'Product Designer',
+    year: '2026',
+    featured: true,
+    size: 'large'
+  },
+  {
+    id: 2,
+    title: 'Mono Interface',
+    description: 'A monochrome interface experiment focused on typography and spacing.',
+    image: 'https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=1200&q=85',
+    category: 'UI/UX',
+    member: 'Raka',
+    role: 'UI Designer',
+    year: '2026',
+    size: 'medium'
+  },
+  {
+    id: 3,
+    title: 'Open Source Lab',
+    description: 'Experimental developer workspace for an open source project.',
+    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=1200&q=85',
+    category: 'Development',
+    member: 'Fikri',
+    role: 'Fullstack Developer',
+    year: '2026',
+    size: 'small'
+  },
+  {
+    id: 4,
+    title: 'North Identity',
+    description: 'Visual identity exploration for an independent technology studio.',
+    image: 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1400&q=85',
+    category: 'Branding',
+    member: 'Naufal',
+    role: 'Brand Designer',
+    year: '2026',
+    size: 'medium'
+  },
+  {
+    id: 5,
+    title: 'Digital Objects',
+    description: 'A collection of digital objects and generative visual experiments.',
+    image: 'https://images.unsplash.com/photo-1634986666676-ec8fd927c23d?auto=format&fit=crop&w=1400&q=85',
+    category: 'Creative',
+    member: 'Rizky',
+    role: 'Creative Developer',
+    year: '2026',
+    size: 'large'
+  },
+  {
+    id: 6,
+    title: 'System 01',
+    description: 'Design system exploration built around a strict visual language.',
+    image: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&w=1200&q=85',
+    category: 'UI/UX',
+    member: 'Alif',
+    role: 'Product Designer',
+    year: '2026',
+    size: 'small'
+  },
+  {
+    id: 7,
+    title: 'Terminal',
+    description: 'A developer-focused landing page with an experimental interface.',
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1400&q=85',
+    category: 'Development',
+    member: 'Yoga',
+    role: 'Frontend Developer',
+    year: '2026',
+    size: 'medium'
+  },
+  {
+    id: 8,
+    title: 'Object / 08',
+    description: 'Visual study exploring form, contrast and digital materials.',
+    image: 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?auto=format&fit=crop&w=1400&q=85',
+    category: 'Creative',
+    member: 'Fauzan',
+    role: 'Creative Technologist',
+    year: '2026',
+    size: 'medium'
+  }
+]
+
+const filteredItems = ref<GalleryItem[]>(galleryItems)
+
+const filterItems = async (category: string) => {
+  if (activeCategory.value === category) return
+
+  const elements = document.querySelectorAll('.gallery-item')
+
+  await gsap.to(elements, {
+    opacity: 0,
+    y: 12,
+    duration: 0.2,
+    stagger: 0.025,
+    ease: 'power2.in'
+  })
+
+  activeCategory.value = category
+
+  filteredItems.value =
+    category === 'All'
+      ? galleryItems
+      : galleryItems.filter(item => item.category === category)
+
+  await nextTick()
+
+  gsap.fromTo(
+    '.gallery-item',
+    {
+      opacity: 0,
+      y: 20
+    },
+    {
+      opacity: 1,
+      y: 0,
+      duration: 0.55,
+      stagger: 0.05,
+      ease: 'power3.out'
+    }
+  )
+}
+
+const openItem = (item: GalleryItem) => {
+  selectedItem.value = item
+
+  nextTick(() => {
+    gsap.fromTo(
+      '.lightbox-content',
+      {
+        opacity: 0,
+        scale: 0.97,
+        y: 12
+      },
+      {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        duration: 0.35,
+        ease: 'power3.out'
+      }
+    )
+  })
+
+  document.body.style.overflow = 'hidden'
+}
+
+const closeItem = () => {
+  gsap.to('.lightbox-content', {
+    opacity: 0,
+    scale: 0.98,
+    y: 10,
+    duration: 0.2,
+    ease: 'power2.in',
+    onComplete: () => {
+      selectedItem.value = null
+      document.body.style.overflow = ''
+    }
+  })
+}
+
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && selectedItem.value) {
+    closeItem()
+  }
+}
+
+let ctx: gsap.Context | null = null
+
+onMounted(() => {
+  document.addEventListener('keydown', handleKeydown)
+
+  ctx = gsap.context(() => {
+    const intro = gsap.timeline({
+      defaults: {
+        ease: 'power3.out'
+      }
+    })
+
+    intro
+      .from('.gallery-eyebrow', {
+        opacity: 0,
+        y: 12,
+        duration: 0.5
+      })
+      .from(
+        '.gallery-title',
+        {
+          opacity: 0,
+          y: 25,
+          duration: 0.7
+        },
+        '-=0.25'
+      )
+      .from(
+        '.gallery-description',
+        {
+          opacity: 0,
+          y: 15,
+          duration: 0.55
+        },
+        '-=0.4'
+      )
+      .from(
+        '.gallery-filter',
+        {
+          opacity: 0,
+          y: 10,
+          duration: 0.45
+        },
+        '-=0.25'
+      )
+
+    gsap.utils.toArray<HTMLElement>('.gallery-item').forEach(item => {
+      gsap.from(item, {
+        opacity: 0,
+        y: 35,
+        duration: 0.7,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: item,
+          start: 'top 88%',
+          once: true
+        }
+      })
+    })
+
+    gsap.utils.toArray<HTMLElement>('.stat-item').forEach(item => {
+      gsap.from(item, {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        scrollTrigger: {
+          trigger: item,
+          start: 'top 90%',
+          once: true
+        }
+      })
+    })
+  })
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeydown)
+  document.body.style.overflow = ''
+  ctx?.revert()
+})
+
+watch(selectedItem, value => {
+  if (!value) {
+    document.body.style.overflow = ''
+  }
+})
+</script>
+
 <template>
-  <div class="min-h-screen bg-white dark:bg-[#09090b] font-sans transition-colors duration-200">
+  <div
+    class="min-h-screen bg-white text-zinc-950 transition-colors duration-300 dark:bg-zinc-950 dark:text-zinc-50"
+  >
 
-    <!-- ─── HEADER ──────────────────────────────────────────── -->
-    <header class="sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-sm">
-      <div class="max-w-screen-xl mx-auto px-6 h-12 flex items-center justify-between">
-        <span class="text-[11px] font-medium tracking-[0.1em] uppercase text-zinc-400 dark:text-zinc-600 shrink-0">
-          Gallery
-        </span>
-        <span class="text-[11px] font-medium tracking-[0.06em] text-zinc-400 dark:text-zinc-600 shrink-0 tabular-nums">
-          {{ filteredImages.length }} foto
-        </span>
-      </div>
-    </header>
-
-    <!-- ─── HERO ─────────────────────────────────────────────── -->
-    <section class="max-w-screen-xl mx-auto px-6 pt-10 pb-8 sm:pt-14 sm:pb-10">
-      <div class="overflow-hidden rounded-[28px] border border-zinc-200/80 dark:border-zinc-800/80 bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-zinc-950 dark:via-black dark:to-zinc-900 shadow-[0_20px_80px_rgba(0,0,0,0.06)] dark:shadow-[0_20px_80px_rgba(0,0,0,0.35)]">
-        <div class="grid gap-8 px-6 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:px-10 lg:py-12">
-          <div class="max-w-2xl">
-            <p class="mb-3 text-[11px] font-medium uppercase tracking-[0.24em] text-zinc-500 dark:text-zinc-500">
-              Gallery
-            </p>
-            <h1 class="text-3xl font-semibold tracking-[-0.03em] text-zinc-950 dark:text-zinc-50 sm:text-4xl lg:text-5xl">
-              Menyimpan momen, karya, dan proses di satu tempat.
-            </h1>
-            <p class="mt-4 max-w-xl text-sm leading-7 text-zinc-600 dark:text-zinc-400 sm:text-[15px]">
-              Dokumentasi visual dari proyek, desain, event, dan behind the scenes yang membentuk identitas NLFTs.
-            </p>
-          </div>
-
-          <div class="flex items-end justify-start lg:justify-end">
-            <div class="relative flex h-48 w-full max-w-[380px] items-end justify-end overflow-hidden rounded-[24px] bg-transparent sm:h-56">
-              <img
-                src="/images/galeri.png"
-                alt="Galeri NLFTs"
-                class="h-[145%] w-[145%] object-contain object-bottom translate-x-[8%] translate-y-[12%]"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ─── SUBHEADER ───────────────────────────────────────── -->
-    <section class="max-w-screen-xl mx-auto border-x border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-[#09090b]/80 px-6 py-3 backdrop-blur-sm">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <nav class="flex flex-wrap items-center gap-1">
-          <button
-            v-for="f in filters"
-            :key="f.key"
-            @click="activeFilter = f.key"
-            class="rounded-full px-3 py-1.5 text-[12px] font-medium transition-colors duration-150"
-            :class="activeFilter === f.key
-              ? 'bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-950'
-              : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-500 dark:hover:text-zinc-200'"
+    <main>
+      <!-- Intro -->
+      <section class="mx-auto max-w-7xl px-5 pb-20 pt-24 sm:px-8 lg:px-10 lg:pb-28 lg:pt-32">
+        <div class="max-w-3xl">
+          <p
+            class="gallery-eyebrow mb-5 text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400"
           >
-            {{ f.label }}
-          </button>
-        </nav>
-        <span class="text-[11px] uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-600">
-          Visual archive
-        </span>
-      </div>
-    </section>
+            Member Gallery
+          </p>
 
-    <!-- ─── MASONRY GRID ─────────────────────────────────────── -->
-    <main class="max-w-screen-xl mx-auto">
-      <div class="border-x border-zinc-200 dark:border-zinc-800">
-        <div class="flex min-h-[320px] flex-col items-center justify-center gap-3 border-b border-zinc-200/80 px-6 py-24 text-center dark:border-zinc-800/80">
-          <div class="flex h-12 w-12 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-600">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
-            </svg>
-          </div>
-          <p class="text-[15px] font-medium text-zinc-900 dark:text-zinc-100">Belum ada gambar yang diposting</p>
-          <p class="max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-            Galeri ini sedang kosong. Nantikan konten visual yang akan ditambahkan segera.
+          <h1
+            class="gallery-title text-5xl font-semibold tracking-[-0.045em] sm:text-6xl lg:text-7xl"
+          >
+            Built by the community.
+          </h1>
+
+          <p
+            class="gallery-description mt-7 max-w-2xl text-base leading-7 text-zinc-500 dark:text-zinc-400 sm:text-lg sm:leading-8"
+          >
+            A collection of websites, interfaces, experiments and creative
+            work created by members of our community.
           </p>
         </div>
-      </div>
+
+        <!-- Stats -->
+        <div
+          class="mt-16 grid max-w-2xl grid-cols-2 gap-y-8 border-t border-zinc-200 pt-8 dark:border-zinc-800 sm:grid-cols-4"
+        >
+          <div class="stat-item">
+            <p class="text-2xl font-semibold tracking-tight">
+              48
+            </p>
+            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              Members
+            </p>
+          </div>
+
+          <div class="stat-item">
+            <p class="text-2xl font-semibold tracking-tight">
+              124
+            </p>
+            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              Projects
+            </p>
+          </div>
+
+          <div class="stat-item">
+            <p class="text-2xl font-semibold tracking-tight">
+              08
+            </p>
+            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              Categories
+            </p>
+          </div>
+
+          <div class="stat-item">
+            <p class="text-2xl font-semibold tracking-tight">
+              2026
+            </p>
+            <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              Collection
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gallery -->
+      <section class="mx-auto max-w-7xl px-5 pb-28 sm:px-8 lg:px-10">
+        <!-- Filter -->
+        <div
+          class="gallery-filter mb-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-zinc-200 pb-5 dark:border-zinc-800"
+        >
+          <button
+            v-for="category in categories"
+            :key="category"
+            type="button"
+            class="relative pb-1 text-sm transition-colors"
+            :class="
+              activeCategory === category
+                ? 'text-zinc-950 dark:text-white'
+                : 'text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300'
+            "
+            @click="filterItems(category)"
+          >
+            {{ category }}
+
+            <span
+              v-if="activeCategory === category"
+              class="absolute -bottom-[1px] left-0 h-px w-full bg-zinc-950 dark:bg-white"
+            />
+          </button>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div
+          class="columns-1 gap-5 sm:columns-2 lg:columns-3"
+        >
+          <article
+            v-for="item in filteredItems"
+            :key="item.id"
+            class="gallery-item group mb-5 break-inside-avoid cursor-pointer"
+            @click="openItem(item)"
+          >
+            <div class="overflow-hidden bg-zinc-100 dark:bg-zinc-900">
+              <img
+                :src="item.image"
+                :alt="item.title"
+                loading="lazy"
+                class="gallery-image block w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+              />
+            </div>
+
+            <div class="flex items-start justify-between gap-6 py-4">
+              <div class="min-w-0">
+                <h2
+                  class="truncate text-sm font-medium tracking-tight"
+                >
+                  {{ item.title }}
+                </h2>
+
+                <p
+                  class="mt-1 text-xs text-zinc-500 dark:text-zinc-400"
+                >
+                  {{ item.member }} · {{ item.role }}
+                </p>
+              </div>
+
+              <span
+                class="shrink-0 text-xs text-zinc-400 dark:text-zinc-500"
+              >
+                {{ item.year }}
+              </span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Empty -->
+        <div
+          v-if="filteredItems.length === 0"
+          class="py-24 text-center"
+        >
+          <p class="text-sm text-zinc-500">
+            No work found in this category.
+          </p>
+        </div>
+      </section>
+
+      <!-- Bottom CTA -->
+      <section
+        class="border-t border-zinc-200 dark:border-zinc-800"
+      >
+        <div
+          class="mx-auto max-w-7xl px-5 py-24 sm:px-8 lg:px-10 lg:py-32"
+        >
+          <div
+            class="flex flex-col justify-between gap-10 md:flex-row md:items-end"
+          >
+            <div class="max-w-xl">
+              <p
+                class="text-xs font-medium uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400"
+              >
+                Your work belongs here
+              </p>
+
+              <h2
+                class="mt-5 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl"
+              >
+                Built something worth sharing?
+              </h2>
+
+              <p
+                class="mt-4 text-sm leading-6 text-zinc-500 dark:text-zinc-400 sm:text-base"
+              >
+                Share your work with other members and become part of
+                the community collection.
+              </p>
+            </div>
+
+            <NuxtLink
+              to="/members"
+              class="inline-flex w-fit items-center border border-zinc-300 px-5 py-3 text-sm font-medium transition-colors hover:bg-zinc-950 hover:text-white dark:border-zinc-700 dark:hover:bg-white dark:hover:text-zinc-950"
+            >
+              Explore members
+            </NuxtLink>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <!-- ─── FOOTER ───────────────────────────────────────────── -->
-    <footer class="max-w-screen-xl mx-auto border-x border-t border-zinc-200 dark:border-zinc-800 px-6 py-5 flex items-center justify-between">
-      <span class="text-[11px] text-zinc-400 dark:text-zinc-600">NLFTs · Dokumentasi Visual</span>
-      <span class="text-[11px] text-zinc-300 dark:text-zinc-700 tabular-nums">{{ new Date().getFullYear() }}</span>
-    </footer>
-
-    <!-- ─── LIGHTBOX ──────────────────────────────────────────── -->
+    <!-- Lightbox -->
     <Teleport to="body">
-      <Transition name="lb">
+      <Transition name="lightbox">
         <div
-          v-if="lightbox"
-          class="fixed inset-0 z-50 bg-white/98 dark:bg-[#09090b]/98 flex flex-col"
-          @keydown.esc="closeLightbox"
-          tabindex="-1"
-          ref="lbEl"
+          v-if="selectedItem"
+          class="fixed inset-0 z-[100] flex items-center justify-center bg-white/95 p-5 backdrop-blur-sm dark:bg-zinc-950/95 sm:p-10"
+          @click.self="closeItem"
         >
-          <!-- Lightbox header -->
-          <div class="flex items-center justify-between px-6 h-12 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-            <div class="flex items-center gap-4">
-              <span class="text-[11px] font-medium tracking-[0.1em] uppercase text-zinc-400 dark:text-zinc-600">Gallery</span>
-              <span class="text-[11px] text-zinc-300 dark:text-zinc-700">/</span>
-              <span class="text-[12px] font-medium text-zinc-900 dark:text-zinc-100">{{ lightbox.title }}</span>
+          <div
+            class="lightbox-content grid max-h-[90vh] w-full max-w-6xl overflow-hidden lg:grid-cols-[minmax(0,1fr)_320px]"
+          >
+            <!-- Image -->
+            <div
+              class="flex max-h-[70vh] items-center justify-center overflow-hidden bg-zinc-100 dark:bg-zinc-900 lg:max-h-[80vh]"
+            >
+              <img
+                :src="selectedItem.image"
+                :alt="selectedItem.title"
+                class="max-h-full w-full object-contain"
+              />
             </div>
-            <div class="flex items-center gap-2">
-              <!-- Prev -->
-              <button
-                @click="navLightbox(-1)"
-                class="w-7 h-7 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-900 dark:hover:border-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 3L5 8l5 5"/></svg>
-              </button>
-              <!-- Next -->
-              <button
-                @click="navLightbox(1)"
-                class="w-7 h-7 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-900 dark:hover:border-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
-              >
-                <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 3l5 5-5 5"/></svg>
-              </button>
-              <!-- Close -->
-              <button
-                @click="closeLightbox"
-                class="w-7 h-7 flex items-center justify-center border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:border-zinc-900 dark:hover:border-zinc-100 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors ml-2"
-              >
-                <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
-              </button>
-            </div>
-          </div>
 
-          <!-- Lightbox image -->
-          <div class="flex-1 min-h-0 flex items-center justify-center p-8 overflow-hidden">
-            <img
-              :src="lightbox.src"
-              :alt="lightbox.alt"
-              class="max-w-full max-h-full object-contain"
-            />
-          </div>
+            <!-- Information -->
+            <div
+              class="flex flex-col justify-between border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950 lg:border-l-0"
+            >
+              <div>
+                <div class="flex items-start justify-between gap-5">
+                  <div>
+                    <p
+                      class="text-xs uppercase tracking-[0.15em] text-zinc-400"
+                    >
+                      {{ selectedItem.category }}
+                    </p>
 
-          <!-- Lightbox meta footer -->
-          <div class="border-t border-zinc-200 dark:border-zinc-800 px-6 py-4 flex items-center justify-between shrink-0">
-            <div class="flex items-center gap-6">
-              <div>
-                <p class="text-[10px] font-medium tracking-[0.1em] uppercase text-zinc-400 dark:text-zinc-600 mb-0.5">Judul</p>
-                <p class="text-[13px] font-medium text-zinc-900 dark:text-zinc-100">{{ lightbox.title }}</p>
+                    <h3
+                      class="mt-3 text-2xl font-semibold tracking-tight"
+                    >
+                      {{ selectedItem.title }}
+                    </h3>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="text-sm text-zinc-400 transition-colors hover:text-zinc-950 dark:hover:text-white"
+                    @click="closeItem"
+                  >
+                    Esc
+                  </button>
+                </div>
+
+                <p
+                  class="mt-6 text-sm leading-6 text-zinc-500 dark:text-zinc-400"
+                >
+                  {{ selectedItem.description }}
+                </p>
               </div>
-              <div>
-                <p class="text-[10px] font-medium tracking-[0.1em] uppercase text-zinc-400 dark:text-zinc-600 mb-0.5">Kategori</p>
-                <p class="text-[13px] text-zinc-700 dark:text-zinc-300">{{ lightbox.category }}</p>
-              </div>
-              <div>
-                <p class="text-[10px] font-medium tracking-[0.1em] uppercase text-zinc-400 dark:text-zinc-600 mb-0.5">Tahun</p>
-                <p class="text-[13px] text-zinc-700 dark:text-zinc-300">{{ lightbox.year }}</p>
+
+              <div
+                class="mt-10 border-t border-zinc-200 pt-5 dark:border-zinc-800"
+              >
+                <div class="flex justify-between">
+                  <span class="text-xs text-zinc-400">
+                    Member
+                  </span>
+
+                  <span class="text-xs font-medium">
+                    {{ selectedItem.member }}
+                  </span>
+                </div>
+
+                <div class="mt-3 flex justify-between">
+                  <span class="text-xs text-zinc-400">
+                    Role
+                  </span>
+
+                  <span class="text-xs font-medium">
+                    {{ selectedItem.role }}
+                  </span>
+                </div>
+
+                <div class="mt-3 flex justify-between">
+                  <span class="text-xs text-zinc-400">
+                    Year
+                  </span>
+
+                  <span class="text-xs font-medium">
+                    {{ selectedItem.year }}
+                  </span>
+                </div>
               </div>
             </div>
-            <span class="text-[11px] text-zinc-300 dark:text-zinc-700 tabular-nums">
-              {{ currentLbIndex + 1 }} / {{ filteredImages.length }}
-            </span>
           </div>
         </div>
       </Transition>
     </Teleport>
-
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref, computed, nextTick } from 'vue'
-
-useSeoMeta({
-  title: 'Galeri — Dokumentasi Visual Proyek & Event NLFTs',
-  ogTitle: 'Galeri — Dokumentasi Visual Proyek & Event NLFTs',
-  description: 'Galeri foto dan visual dokumentasi proyek, UI design, event meetup, dan behind the scenes komunitas developer NLFTs Indonesia.',
-  ogDescription: 'Dokumentasi visual NLFTs: proyek, UI design, event meetup, dan momen behind the scenes komunitas developer Indonesia.',
-  ogImage: 'https://nlfts.dev/og/gallery.png',
-  ogImageWidth: 1200,
-  ogImageHeight: 630,
-  ogImageType: 'image/png',
-  ogUrl: 'https://nlfts.dev/galeri',
-  ogType: 'website',
-  twitterCard: 'summary_large_image',
-  twitterTitle: 'Galeri NLFTs — Dokumentasi Visual Komunitas Developer Indonesia',
-  twitterDescription: 'Foto proyek, event, dan behind the scenes komunitas NLFTs.',
-  twitterImage: 'https://nlfts.dev/og/gallery.png',
-})
-
-// ── Filters ───────────────────────────────────────────
-const filters = [
-  { key: 'all',       label: 'Semua' },
-  { key: 'project',   label: 'Proyek' },
-  { key: 'ui',        label: 'UI Design' },
-  { key: 'event',     label: 'Event' },
-  { key: 'behind',    label: 'Behind the scenes' },
-]
-
-const activeFilter = ref('all')
-
-// ── Images data ───────────────────────────────────────
-// Ganti `src` dengan path gambar asli dari project kamu.
-// `ratio` mengontrol tinggi gambar — gunakan format "lebar/tinggi" (CSS aspect-ratio).
-interface GalleryImage {
-  id: number
-  src: string
-  alt: string
-  title: string
-  category: string
-  categoryKey: string
-  year: string
-  ratio: string
-}
-
-const images = ref<GalleryImage[]>([
-  {
-    id: 1,
-    src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80',
-    alt: 'Tampilan UI dashboard NLFTs v2',
-    title: 'Dashboard v2',
-    category: 'UI Design',
-    categoryKey: 'ui',
-    year: '2025',
-    ratio: '4/3',
-  },
-  {
-    id: 2,
-    src: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&q=80',
-    alt: 'Proses coding proyek internal NLFTs',
-    title: 'Dev Session #12',
-    category: 'Behind the scenes',
-    categoryKey: 'behind',
-    year: '2025',
-    ratio: '16/10',
-  },
-  {
-    id: 3,
-    src: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&q=80',
-    alt: 'Event meetup komunitas NLFTs pertama',
-    title: 'NLFTs Meetup #1',
-    category: 'Event',
-    categoryKey: 'event',
-    year: '2024',
-    ratio: '3/2',
-  },
-  {
-    id: 4,
-    src: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&q=80',
-    alt: 'Landing page desain korporat',
-    title: 'Corporate Landing',
-    category: 'UI Design',
-    categoryKey: 'ui',
-    year: '2025',
-    ratio: '1/1',
-  },
-  {
-    id: 5,
-    src: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&q=80',
-    alt: 'Tampilan mobile app proyek klien',
-    title: 'Mobile App Client',
-    category: 'Proyek',
-    categoryKey: 'project',
-    year: '2025',
-    ratio: '9/16',
-  },
-  {
-    id: 6,
-    src: 'https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80',
-    alt: 'Setup workstation tim NLFTs',
-    title: 'Studio Setup',
-    category: 'Behind the scenes',
-    categoryKey: 'behind',
-    year: '2024',
-    ratio: '3/2',
-  },
-  {
-    id: 7,
-    src: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=800&q=80',
-    alt: 'Workshop desain bersama komunitas',
-    title: 'Design Workshop',
-    category: 'Event',
-    categoryKey: 'event',
-    year: '2024',
-    ratio: '4/3',
-  },
-  {
-    id: 8,
-    src: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80',
-    alt: 'Analitik proyek SaaS NLFTs',
-    title: 'SaaS Analytics',
-    category: 'Proyek',
-    categoryKey: 'project',
-    year: '2025',
-    ratio: '16/9',
-  },
-  {
-    id: 9,
-    src: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&q=80',
-    alt: 'Wireframe proyek e-commerce klien',
-    title: 'E-Commerce Wireframe',
-    category: 'UI Design',
-    categoryKey: 'ui',
-    year: '2024',
-    ratio: '4/3',
-  },
-  {
-    id: 10,
-    src: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80',
-    alt: 'Sesi live coding NLFTs stream',
-    title: 'Live Coding Stream',
-    category: 'Behind the scenes',
-    categoryKey: 'behind',
-    year: '2025',
-    ratio: '16/9',
-  },
-  {
-    id: 11,
-    src: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&q=80',
-    alt: 'Aplikasi mobile komponen sistem',
-    title: 'Component System',
-    category: 'Proyek',
-    categoryKey: 'project',
-    year: '2025',
-    ratio: '9/16',
-  },
-  {
-    id: 12,
-    src: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
-    alt: 'NLFTs annual gathering 2024',
-    title: 'Annual Gathering',
-    category: 'Event',
-    categoryKey: 'event',
-    year: '2024',
-    ratio: '16/9',
-  },
-])
-
-// ── Filter logic ──────────────────────────────────────
-const filteredImages = computed(() =>
-  activeFilter.value === 'all'
-    ? images.value
-    : images.value.filter((img) => img.categoryKey === activeFilter.value)
-)
-
-// ── Lightbox ──────────────────────────────────────────
-const lightbox = ref<GalleryImage | null>(null)
-const lbEl = ref<HTMLElement | null>(null)
-
-const currentLbIndex = computed(() =>
-  lightbox.value
-    ? filteredImages.value.findIndex((img) => img.id === lightbox.value!.id)
-    : 0
-)
-
-const openLightbox = async (img: GalleryImage) => {
-  lightbox.value = img
-  await nextTick()
-  lbEl.value?.focus()
-}
-
-const closeLightbox = () => {
-  lightbox.value = null
-}
-
-const navLightbox = (dir: 1 | -1) => {
-  const list = filteredImages.value
-  if (!list.length) return
-
-  const idx = currentLbIndex.value
-  const next = (idx + dir + list.length) % list.length
-  const nextItem = list[next]
-
-  if (nextItem) {
-    lightbox.value = nextItem
-  }
-}
-
-// Keyboard nav
-onMounted(() => {
-  window.addEventListener('keydown', handleKey)
-})
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKey)
-})
-
-const handleKey = (e: KeyboardEvent) => {
-  if (!lightbox.value) return
-  if (e.key === 'Escape') closeLightbox()
-  if (e.key === 'ArrowRight') navLightbox(1)
-  if (e.key === 'ArrowLeft') navLightbox(-1)
-}
-</script>
-
 <style scoped>
-/* Keep this page aligned with the global typography token. */
-.font-sans {
-  font-family: 'Inter Tight', sans-serif;
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity 0.25s ease;
 }
 
-/* Pastikan kolom masonry tidak ada gap di sisi dalam */
-.columns-1 > figure,
-.sm\:columns-2 > figure,
-.lg\:columns-3 > figure {
-  margin: 0;
-}
-
-/* Lightbox transition */
-.lb-enter-active,
-.lb-leave-active {
-  transition: opacity 0.15s ease;
-}
-.lb-enter-from,
-.lb-leave-to {
+.lightbox-enter-from,
+.lightbox-leave-to {
   opacity: 0;
 }
 
-/* Kolom border — baris kanan dan kiri menggunakan border-x dari container,
-   border vertikal antar kolom ditangani oleh border-r pada figure */
-@media (min-width: 640px) {
-  .sm\:columns-2 > figure:not(:nth-child(2n)) {
-    border-right: 1px solid;
-  }
-}
-@media (min-width: 1024px) {
-  .lg\:columns-3 > figure:not(:nth-child(3n)) {
-    border-right: 1px solid;
-  }
-  .sm\:columns-2 > figure:not(:nth-child(2n)) {
-    border-right: none;
-  }
+/* Prevent images from becoming visually inconsistent
+   while their dimensions are being resolved. */
+.gallery-image {
+  min-height: 220px;
 }
 
-/* Border-color menyesuaikan mode */
-figure {
-  border-color: rgb(228, 228, 231); /* zinc-200 */
-}
-.dark figure {
-  border-color: rgb(39, 39, 42); /* zinc-800 */
+@media (min-width: 640px) {
+  .gallery-image {
+    min-height: 260px;
+  }
 }
 </style>
