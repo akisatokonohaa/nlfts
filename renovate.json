@@ -3,7 +3,7 @@
     "github>nuxt/renovate-config-nuxt"
   ],
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": false
   },
   "packageRules": [{
     "matchDepTypes": ["resolutions"],

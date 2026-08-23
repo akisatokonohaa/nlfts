@@ -105,6 +105,13 @@ const resetHover = () => {
   hoverState.value.opacity = 0
 }
 
+const closeDesktopMenu = () => {
+  clearTimeout(closeTimeout)
+  if (dropdownEl.value) gsap.killTweensOf(dropdownEl.value)
+  activeMenu.value = null
+  resetHover()
+}
+
 // ── Mobile Menu ─────────────────────────────────────
 const openMobile = () => {
   mobileOpen.value = true
@@ -188,6 +195,27 @@ const Resources = [
     ]
   }
 ]
+
+
+const exploreComparisons = [
+  { label: 'NLFTs vs komunitas biasa', icon: 'i-lucide-users', to: '/about' },
+  { label: 'NLFTs vs kursus online', icon: 'i-lucide-book-open', to: '/docs/getting-started' },
+  { label: 'NLFTs vs job board', icon: 'i-lucide-briefcase-business', to: '/karir' }
+]
+
+const exploreQuickLinks = [
+  { label: 'Dokumentasi', icon: 'i-lucide-book-open', to: '/docs/getting-started' },
+  { label: 'Blog', icon: 'i-lucide-newspaper', to: '/blog' },
+  { label: 'Changelog', icon: 'i-lucide-history', to: '/changelog' },
+  { label: 'Members', icon: 'i-lucide-users', to: '/members' },
+  { label: 'Terhubung', icon: 'i-lucide-network', to: '/terhubung' },
+  { label: 'Donasi', icon: 'i-lucide-heart-handshake', to: '/donasi' },
+  { label: 'Galeri', icon: 'i-lucide-images', to: '/galeri' },
+  { label: 'FAQ', icon: 'i-lucide-circle-help', to: '/faq' },
+  { label: 'Partner', icon: 'i-lucide-handshake', to: '/terhubung' },
+  { label: 'Kontak', icon: 'i-lucide-mail', to: '/contact' },
+  { label: 'Community', icon: 'i-lucide-message-circle', to: 'https://discord.gg/uNc3r3ZKQx', external: true }
+]
 </script>
 
 <template>
@@ -206,6 +234,7 @@ const Resources = [
         </NuxtLink>
         <nav
           class="hidden lg:flex items-center gap-0.5 relative shrink-0"
+          @click="closeDesktopMenu"
           @mouseenter="cancelClose"
           @mouseleave="() => { scheduleClose(); resetHover(); }"
         >
@@ -283,28 +312,50 @@ const Resources = [
       v-if="activeMenu"
       ref="dropdownEl"
       class="absolute left-0 right-0 top-full z-20"
+      @click="closeDesktopMenu"
       @mouseenter="cancelClose"
       @mouseleave="scheduleClose"
     >
-      <div class="max-w-[1600px] mx-auto px-6 py-4">
-        <div class="rounded-[26px] border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#020202] shadow-[0_30px_70px_-26px_rgba(15,23,42,0.18)] dark:shadow-[0_30px_80px_-32px_rgba(0,0,0,0.55)] overflow-hidden">
-          <div class="px-6 py-8 lg:px-8 lg:py-10">
+      <div class="max-w-[1240px] mx-auto px-4 py-3">
+        <div class="rounded-[18px] border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#020202] shadow-[0_30px_70px_-26px_rgba(15,23,42,0.18)] dark:shadow-[0_30px_80px_-32px_rgba(0,0,0,0.55)] overflow-hidden">
+          <div class="px-5 py-5 lg:px-6 lg:py-6">
             <div v-if="activeMenu === 'resources'">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-2">
-                <div v-for="section in Resources" :key="section.title">
-                  <h4 class="dd-animate text-[11px] font-bold text-zinc-400 dark:text-zinc-500 tracking-wider uppercase mb-4">
-                    {{ section.title }}
-                  </h4>
-                  <ul class="space-y-2">
-                    <li v-for="item in section.links" :key="item.to" class="dd-animate">
-                      <HoverLink 
-                        :to="item.to" 
-                        :label="item.label" 
-                        :target="item.target"
-                        :external="item.external"
-                      />
-                    </li>
-                  </ul>
+              <div class="grid grid-cols-1 lg:grid-cols-[1.45fr_1fr]">
+                <div class="border-b border-zinc-200 px-1 pb-7 dark:border-zinc-800 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-8">
+                  <p class="dd-animate mb-5 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">Explore</p>
+                  <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      <NuxtLink
+                        v-for="link in exploreQuickLinks"
+                        :key="link.label"
+                        :to="link.to"
+                        :external="link.external"
+                        class="dd-animate group flex items-center gap-2.5 rounded-lg px-3 py-3 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100"
+                      >
+                        <UIcon :name="link.icon" class="h-5 w-5 shrink-0 text-zinc-400 transition-colors group-hover:text-primary-500" />
+                        {{ link.label }}
+                      </NuxtLink>
+                  </div>
+                </div>
+
+                <div class="pt-7 lg:pt-0 lg:pl-8">
+                  <p class="dd-animate mb-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">Cerita komunitas <UIcon name="i-lucide-arrow-up-right" class="inline h-3 w-3" /></p>
+                  <NuxtLink to="/blog" class="dd-animate group flex items-center gap-3 rounded-xl py-1">
+                    <span class="flex h-[70px] w-[100px] shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-100 text-sm font-bold tracking-tight text-zinc-400 transition-colors group-hover:bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-500 dark:group-hover:bg-zinc-800">NLFTs</span>
+                    <span class="text-[15px] font-medium leading-5 text-zinc-800 transition-colors group-hover:text-primary-500 dark:text-zinc-200">Bagaimana komunitas membangun karier digital bersama</span>
+                  </NuxtLink>
+
+                  <div class="mt-8 border-t border-zinc-200 pt-5 dark:border-zinc-800">
+                    <p class="dd-animate mb-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">Bandingkan NLFTs</p>
+                    <NuxtLink
+                      v-for="comparison in exploreComparisons"
+                      :key="comparison.label"
+                      :to="comparison.to"
+                      class="dd-animate group mb-2 flex items-center justify-between text-[15px] text-zinc-700 transition-colors hover:text-primary-500 dark:text-zinc-300"
+                    >
+                      <span class="flex items-center gap-2"><UIcon :name="comparison.icon" class="h-4 w-4 text-zinc-400" />{{ comparison.label }}</span>
+                      <UIcon name="i-lucide-arrow-up-right" class="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </NuxtLink>
+                  </div>
                 </div>
               </div>
             </div>

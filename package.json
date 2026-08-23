@@ -16,7 +16,10 @@
     "dev": "nuxt dev",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint .",
+    "lint": "pnpm lint:biome && pnpm lint:eslint",
+    "lint:biome": "biome check .",
+    "lint:eslint": "eslint .",
+    "format": "biome format --write .",
     "typecheck": "nuxt typecheck",
     "knip": "knip",
     "test": "vitest"
@@ -37,6 +40,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.10",
     "@nuxt/eslint": "^1.15.2",
     "@nuxt/test-utils": "^4.1.0",
     "eslint": "^10.1.0",

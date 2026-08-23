@@ -48,10 +48,10 @@
             </div>
             <div class="p-4 sm:p-5">
               <strong class="block text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">24/7</strong>
-              <span class="mt-1 block text-xs text-zinc-500">Kolaborasi</span>
+              <span class="mt-1 block text-xs text-zinc-500">Online</span>
             </div>
             <div class="p-4 sm:p-5">
-              <strong class="block text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Open</strong>
+              <strong class="block text-2xl font-semibold tracking-tight text-zinc-900 dark:text-white">Private</strong>
               <span class="mt-1 block text-xs text-zinc-500">Mindset</span>
             </div>
           </div>

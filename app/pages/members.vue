@@ -1,367 +1,149 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-[#09090b] py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header dengan toggle dark/light -->
-      <div class="flex justify-between items-center mb-10">
-        <div class="text-left">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-700 dark:text-gray-300 text-xs font-medium tracking-wider uppercase">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            {{ contributors.length }} Kontributor
-          </div>
-        </div>
-      </div>
+  <main
+    ref="page"
+    class="members-page relative isolate min-h-[calc(100vh-4rem)] overflow-hidden bg-[#ededed] text-gray-950 transition-colors duration-500 dark:bg-[#090909] dark:text-white"
+  >
+    <div
+      class="pointer-events-none absolute inset-0 -z-10 opacity-60 [background-image:linear-gradient(rgba(0,0,0,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.07)_1px,transparent_1px)] [background-size:100%_102px,102px_100%] [mask-image:linear-gradient(to_bottom,black_20%,transparent_96%)] dark:opacity-70 dark:[background-image:linear-gradient(rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.045)_1px,transparent_1px)]"
+      aria-hidden="true"
+    />
 
-      <!-- Judul halaman -->
-      <div class="text-center mb-12">
-        <h1 class="text-4xl sm:text-5xl font-light text-gray-900 dark:text-white tracking-tight">
-          Memberes
-        </h1>
-        <p class="mt-2 text-gray-500 dark:text-gray-400 text-sm max-w-md mx-auto">
-          Kenali para kontributor dan semangat mereka
+    <div class="hero-content relative mx-auto flex min-h-[115vh] w-full max-w-[1600px] items-center justify-center px-6 pb-20 pt-24 sm:px-10">
+        <p class="hero-item mb-5 flex items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#8ed1b0]">
+          <span class="h-1.5 w-1.5 rounded-full bg-[#8ed1b0] shadow-[0_0_14px_rgba(142,209,176,0.75)]" />
+          NLFTs talent network
         </p>
-      </div>
-
-      <!-- Search bar -->
-      <div class="max-w-md mx-auto mb-10">
-        <div class="relative">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Cari kontributor..."
-            class="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:focus:ring-blue-400/30 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200"
-          />
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Grid Kontributor -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        <div
-          v-for="contributor in filteredContributors"
-          :key="contributor.name"
-          class="group bg-white dark:bg-zinc-900/60 rounded-2xl border border-gray-200/80 dark:border-gray-800/80 shadow-sm hover:shadow-md dark:hover:shadow-gray-800/30 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-300 p-5 flex flex-col"
+        <h1 class="hero-item text-[clamp(2.5rem,5.2vw,5rem)] font-medium leading-[0.9] tracking-[-0.065em]">
+          Hire Mobile Devs<br>
+          <span class="text-[#b8b7b2]">Differently</span>
+        </h1>
+        <p class="hero-item mx-auto mt-8 max-w-[390px] text-[clamp(0.95rem,1.7vw,1.25rem)] font-medium leading-[1.2] text-[#989894]">
+          Engineers who own outcomes —<br>
+          CTO-screened with ≤ 5% pass rate for skill,<br class="hidden sm:block">
+          mindset, and long-term fit.
+        </p>
+        <NuxtLink
+          to="/terhubung"
+          class="hero-item mt-12 inline-flex items-center gap-3 rounded-md bg-[#f4f2ed] px-7 py-3.5 font-mono text-sm text-[#191a19] transition hover:-translate-y-1 hover:bg-[#8ed1b0]"
         >
-          <!-- Avatar & Nama -->
-          <div class="flex items-start gap-4">
-            <img
-              :src="contributor.avatar"
-              :alt="contributor.name"
-              class="w-14 h-14 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700 flex-shrink-0"
-              loading="lazy"
-            />
-            <div class="flex-1 min-w-0">
-              <h3 class="text-base font-semibold text-gray-900 dark:text-white truncate">
-                {{ contributor.name }}
-              </h3>
-              <!-- Moto (per orang) -->
-              <p class="text-xs text-gray-500 dark:text-gray-400 italic line-clamp-2 mt-0.5">
-                “{{ contributor.moto }}”
-              </p>
-            </div>
-          </div>
+          Hire Talent
+          <UIcon name="i-lucide-arrow-up-right" class="h-4 w-4" />
+        </NuxtLink>
 
-          <!-- Tech Stack (per orang) -->
-          <TechStack :items="contributor.techStack" />
-        </div>
+      <div class="image-panel image-panel--left absolute left-[-3rem] top-[19%] h-[12rem] w-[9rem] overflow-hidden rounded-xl bg-black shadow-2xl sm:left-[-2rem] sm:h-[14rem] sm:w-[10.5rem] lg:left-[-1rem]">
+        <img src="/images/mas.webp" alt="Aplikasi mobile NLFTs" class="h-full w-full object-cover" loading="lazy">
       </div>
 
-      <!-- Empty state -->
-      <div v-if="filteredContributors.length === 0" class="text-center py-16">
-        <p class="text-gray-400 dark:text-gray-500 text-sm">Tidak ada kontributor yang cocok</p>
+      <div class="image-panel image-panel--studio absolute left-[23%] top-[-2rem] hidden h-[10rem] w-[14rem] -rotate-2 overflow-hidden rounded-xl sm:block">
+        <img src="/images/studio.webp" alt="Developer sedang bekerja" class="h-full w-full object-cover saturate-75 contrast-110" loading="eager">
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/70" />
       </div>
 
-      <!-- Footer -->
-      <div class="mt-16 text-center text-xs text-gray-400 dark:text-gray-500 border-t border-gray-200 dark:border-gray-800 pt-6">
-        <span>© {{ new Date().getFullYear() }} — Memberes</span>
-        <span class="mx-2">·</span>
-        <span>{{ contributors.length }} kontributor</span>
-        <span class="mx-2">·</span>
-        <span class="inline-flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-          {{ isDark ? 'Gelap' : 'Terang' }}
-        </span>
+      <div class="image-panel image-panel--phone absolute right-[9%] top-[13%] h-[13.5rem] w-[9.75rem] rotate-2 overflow-hidden rounded-xl bg-[#efede4] shadow-2xl sm:right-[10%] sm:h-[15rem] sm:w-[10.75rem]">
+        <img src="/images/mas.webp" alt="Tampilan produk digital NLFTs" class="h-full w-full object-cover" loading="lazy">
+      </div>
+
+      <div class="image-panel image-panel--portrait absolute bottom-[-3rem] right-[-1rem] h-[16rem] w-[11rem] rotate-2 overflow-hidden rounded-xl shadow-2xl sm:right-[2%] sm:h-[18rem] sm:w-[12rem] lg:right-[4%]">
+        <img src="/team/nlfts.webp" alt="Member komunitas NLFTs" class="h-full w-full object-cover" loading="lazy">
+      </div>
+
+      <div class="absolute bottom-5 left-6 right-6 flex justify-between font-mono text-[9px] uppercase tracking-[0.12em] text-[#646661] sm:left-10 sm:right-10">
+        <span>01 — 04</span>
+        <span class="hidden sm:inline">Developer community / Indonesia</span>
       </div>
     </div>
-  </div>
+
+    <section class="mx-auto w-full max-w-[1600px] px-6 pb-24 sm:px-10" aria-labelledby="members-gallery-title">
+      <div class="mb-8 flex items-end justify-between border-b border-zinc-300 pb-4 dark:border-zinc-800">
+        <div>
+          <p class="mb-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#8ed1b0]">Selected workspaces</p>
+          <h2 id="members-gallery-title" class="text-2xl font-medium tracking-[-0.04em] sm:text-3xl">Built by people who care.</h2>
+        </div>
+        <span class="font-mono text-[10px] text-[#777973]">09 / 09</span>
+      </div>
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
+        <a
+          v-for="(photo, index) in photos"
+          :key="photo.id"
+          :href="photo.link"
+          target="_blank"
+          rel="noreferrer"
+          class="gallery-item group relative overflow-hidden rounded-lg bg-zinc-200 dark:bg-[#242524]"
+          :class="index < 4 ? 'aspect-[4/3]' : 'aspect-[4/5]'"
+        >
+          <img
+            :src="photo.url"
+            :alt="photo.alt"
+            class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+            loading="lazy"
+          >
+          <span class="absolute bottom-3 left-3 font-mono text-[9px] text-white/70">0{{ index + 1 }}</span>
+        </a>
+      </div>
+    </section>
+  </main>
 </template>
 
 <script setup lang="ts">
-// ============================================================
-// 1. METADATA (useHead) dengan moto global (opsional)
-// ============================================================
+import { gsap } from 'gsap'
+
+const page = ref<HTMLElement | null>(null)
+const config = useRuntimeConfig()
+const photos = ref([
+  { id: 'fallback-1', url: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=85', alt: 'Modern workspace', link: 'https://unsplash.com' },
+  { id: 'fallback-2', url: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=85', alt: 'Creative studio', link: 'https://unsplash.com' },
+  { id: 'fallback-3', url: 'https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=900&q=85', alt: 'Developer workspace', link: 'https://unsplash.com' },
+  { id: 'fallback-4', url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=85', alt: 'Bright office interior', link: 'https://unsplash.com' },
+  { id: 'fallback-5', url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=85', alt: 'Laptop and code', link: 'https://unsplash.com' },
+  { id: 'fallback-6', url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=900&q=85', alt: 'Team collaboration', link: 'https://unsplash.com' },
+  { id: 'fallback-7', url: 'https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=85', alt: 'Team workspace', link: 'https://unsplash.com' },
+  { id: 'fallback-8', url: 'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=900&q=85', alt: 'People working together', link: 'https://unsplash.com' },
+  { id: 'fallback-9', url: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=900&q=85', alt: 'Product planning session', link: 'https://unsplash.com' }
+])
+
+onMounted(() => {
+  if (!page.value) return
+
+  if (config.public.unsplashAccessKey) {
+    $fetch<Array<{ id: string, urls: { regular: string }, alt_description: string | null, links: { html: string } }>>('https://api.unsplash.com/photos/random', {
+      query: {
+        client_id: config.public.unsplashAccessKey,
+        query: 'developer workspace technology team',
+        count: 9,
+        orientation: 'landscape'
+      }
+    }).then((result) => {
+      photos.value = result.map(photo => ({
+        id: photo.id,
+        url: photo.urls.regular,
+        alt: photo.alt_description || 'Workspace komunitas NLFTs',
+        link: photo.links.html
+      }))
+    }).catch(() => undefined)
+  }
+
+  gsap.fromTo(
+    page.value.querySelectorAll('.hero-item'),
+    { opacity: 0, y: 24 },
+    { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }
+  )
+  gsap.fromTo(
+    page.value.querySelectorAll('.image-panel'),
+    { opacity: 0, scale: 0.94 },
+    { opacity: 1, scale: 1, duration: 0.9, stagger: 0.08, delay: 0.2, ease: 'power3.out' }
+  )
+})
 useSeoMeta({
-  title: 'Members — Kontributor NLFTs, Developer Open Source Indonesia',
-  ogTitle: 'Members — Kontributor NLFTs, Developer Open Source Indonesia',
-  description: 'Kenali 25+ kontributor aktif NLFTs — developer Indonesia yang membangun ekosistem open-source dengan stack modern: Nuxt, Vue, TypeScript, Laravel, Flutter, dan banyak lagi.',
-  ogDescription: 'Daftar kontributor NLFTs: developer open-source Indonesia dengan berbagai keahlian teknologi modern.',
+  title: 'Members — NLFTs Developer Network',
+  description: 'Kenali developer dan kontributor yang membangun ekosistem NLFTs.',
+  ogTitle: 'Members — NLFTs Developer Network',
+  ogDescription: 'Developer yang memiliki hasil kerja, rasa ingin tahu, dan standar tinggi.',
   ogImage: 'https://nlfts.dev/og/members.png',
-  ogImageWidth: 1200,
-  ogImageHeight: 630,
-  ogImageType: 'image/png',
-  ogUrl: 'https://nlfts.dev/members',
-  ogType: 'website',
-  twitterCard: 'summary_large_image',
-  twitterTitle: 'Members NLFTs — Developer Open Source Indonesia',
-  twitterDescription: '25+ kontributor aktif NLFTs dengan stack Nuxt, Vue, TypeScript, dan lainnya.',
-  twitterImage: 'https://nlfts.dev/og/members.png',
+  ogType: 'website'
 })
 
 useHead({
-  link: [
-    { rel: 'canonical', href: 'https://memberes.com/kontributor' }
-  ]
-})
-
-// ============================================================
-// 2. DUMMY DATA KONTRIBUTOR (masing-masing punya moto & techStack)
-// ============================================================
-
-const contributors = [
-  {
-    name: 'davingm',
-    avatar: 'https://avatars.githubusercontent.com/u/228851591?v=4',
-    moto: 'Kode adalah puisi, dan saya menulis epik',
-    techStack: ['Vue', 'Nuxt', 'TypeScript', 'Tailwind']
-  },
-  {
-    name: 'Nairha',
-    avatar: 'https://avatars.githubusercontent.com/u/204519754?s=130&v=4',
-    moto: 'Desain yang indah dimulai dari pikiran yang jernih',
-    techStack: ['framer', 'angular', 'typescript', 'once ui']
-  },
-   {
-    name: 'sidikqst',
-    avatar: 'https://avatars.githubusercontent.com/u/230048582?s=130&v=4',
-    moto: 'Cloud-native dari awal',
-    techStack: ['AWS', 'Terraform', 'nuxt', 'Kubernetes', 'vuejs']
-  },
-  {
-    name: 'Cery',
-    avatar: 'https://avatars.githubusercontent.com/u/190081649?s=130&v=4',
-    moto: 'Bangun sesuatu yang berarti',
-    techStack: ['Node.js', 'hexo', 'rust', 'git']
-  },
-  {
-    name: 'yanfe1',
-    avatar: 'https://avatars.githubusercontent.com/u/238488059?s=130&v=4',
-    moto: 'Frontend dengan sentuhan artistik',
-    techStack: ['React', 'Next.js', 'Chakra UI', 'Jest']
-  },
-  {
-    name: 'Mugi',
-    avatar: 'https://avatars.githubusercontent.com/u/289261759?s=130&v=4',
-    moto: 'Data adalah cerita, saya pandai bercerita',
-    techStack: ['html', 'sass', 'SQL', 'Tableau']
-  },
-  {
-    name: 'titu',
-    avatar: 'https://avatars.githubusercontent.com/u/222330932?s=130&v=4',
-    moto: 'Kesederhanaan adalah kecanggihan tertinggi',
-    techStack: ['Go', 'net', 'Kafka', 'Redis']
-  },
-  {
-    name: 'bagas',
-    avatar: 'https://avatars.githubusercontent.com/u/284604593?s=130&v=4',
-    moto: 'Mobile first, karena dunia ada di genggaman',
-    techStack: ['Flutter', 'Dart', 'Firebase', 'GraphQL']
-  },
-  {
-    name: 'fandy',
-    avatar: 'https://avatars.githubusercontent.com/u/216720543?s=130&v=4',
-    moto: 'Keamanan bukan fitur, tapi fondasi',
-    techStack: ['TypeScript', 'astrojs', 'pyqt', 'docker']
-  },
-  {
-    name: 'Ajrin',
-    avatar: 'https://github.com/BeedBest.png',
-    moto: 'Tulis kode yang bisa dibaca manusia',
-    techStack: ['html', 'css', 'javascript']
-  },
-  {
-    name: 'teguh',
-    avatar: 'https://avatars.githubusercontent.com/u/228839856?s=130&v=4',
-    moto: 'AI untuk semua orang',
-    techStack: ['TensorFlow', 'php', 'laravel', 'AWS', 'tailwind']
-  },
-  {
-    name: 'Ahmad',
-    avatar: 'https://avatars.githubusercontent.com/u/225441519?s=130&v=4',
-    moto: 'Dari ide ke produk dalam hitungan jam',
-    techStack: ['PHP', 'Laravel', 'Livewire', 'MySQL']
-  },
-  {
-    name: 'Rehan',
-    avatar: 'https://avatars.githubusercontent.com/u/218329504?s=130&v=4',
-    moto: 'Javascript ada di mana-mana',
-    techStack: ['JavaScript', 'Node', 'next', 'laravel', 'react']
-  },
-  {
-    name: 'Habsy',
-    avatar: 'https://github.com/clarkaiden.png',
-    moto: 'Rapi, cepat, dan efisien',
-    techStack: ['html', 'css', 'javascript']
-  },
-  {
-    name: 'Vahlzzz',
-    avatar: 'https://avatars.githubusercontent.com/u/202130049?s=130&v=4',
-    moto: 'Desain sistem yang scalable',
-    techStack: ['nuxt', 'threejs', 'typescript', 'laravel', 'vuejs']
-  },
-  {
-    name: 'hanif',
-    avatar: 'https://avatars.githubusercontent.com/u/232500114?s=130&v=4',
-    moto: 'Kode bersih, hati tenang',
-    techStack: ['laravel', 'php', 'tailwind', 'livewire']
-  },
-  {
-    name: 'Bara',
-    avatar: 'https://avatars.githubusercontent.com/u/228843429?s=130&v=4',
-    moto: 'Desain yang inklusif untuk semua',
-    techStack: ['nuxtjs', 'vuejs', 'typescript', 'javascript']
-  },
-  {
-    name: 'Destkaa',
-    avatar: 'https://avatars.githubusercontent.com/u/228332586?s=130&v=4',
-    moto: 'Analisis data mengubah dunia',
-    techStack: ['nuxt', 'java', 'tailwind', 'postgresql']
-  },
-  {
-    name: 'Radietya',
-    avatar: 'https://avatars.githubusercontent.com/u/226198461?s=130&v=4',
-    moto: 'Backend yang tangguh, frontend yang indah',
-    techStack: ['laravel', 'django', 'python', 'react', 'php', 'javascript']
-  },
-  {
-    name: 'Fakhri',
-    avatar: 'https://avatars.githubusercontent.com/u/228840381?s=130&v=4',
-    moto: 'Kode adalah alat, bukan tujuan',
-    techStack: ['Go', 'laravel', 'php', 'nuxt', 'vuejs']
-  },
-  {
-    name: 'Ilaman',
-    avatar: 'https://avatars.githubusercontent.com/u/228839961?s=130&v=4',
-    moto: 'Pemrograman fungsional membawa kedamaian',
-    techStack: ['Haskell', 'Scala', 'nuxt', 'Kafka']
-  },
-  {
-    name: 'jauf',
-    avatar: 'https://avatars.githubusercontent.com/u/167701174?s=130&v=4',
-    moto: 'Kualitas adalah kebiasaan',
-    techStack: ['html', 'laravel', 'php', 'tailwind']
-  },
-  {
-    name: 'feri',
-    avatar: 'https://avatars.githubusercontent.com/u/234127916?s=130&v=4',
-    moto: 'Kreativitas tanpa batas',
-    techStack: ['vuejs', 'laravel', 'php', 'tailwind']
-  },
-  {
-    name: 'ashiro tanka',
-    avatar: '/team/siro.webp',
-    moto: 'Selalu belajar, selalu berkembang',
-    techStack: []
-  },
-  {
-    name: 'nafis',
-    avatar: 'https://avatars.githubusercontent.com/u/182593937?s=130&v=4',
-    moto: 'フロントエンド開発とUI/UXデザインに特に興味があります。 @NLFTs @Vercel',
-    techStack: ['react', 'next', 'tailwind', 'typescript', 'javascript']
-  },
-]
-
-// ============================================================
-// 3. DARK / LIGHT MODE (hitam pekat untuk dark)
-// ============================================================
-const isDark = ref(false)
-
-onMounted(() => {
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark' || saved === 'light') {
-    isDark.value = saved === 'dark'
-  } else {
-    isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-  }
-  applyTheme(isDark.value)
-})
-
-const toggleDarkMode = () => {
-  isDark.value = !isDark.value
-  applyTheme(isDark.value)
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
-}
-
-const applyTheme = (dark: boolean) => {
-  if (dark) {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
-}
-
-// ============================================================
-// 4. PENCARIAN (berdasarkan nama, moto, atau tech stack)
-// ============================================================
-const searchQuery = ref('')
-
-const filteredContributors = computed(() => {
-  if (!searchQuery.value.trim()) return contributors
-  const q = searchQuery.value.toLowerCase().trim()
-  return contributors.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.moto.toLowerCase().includes(q) ||
-    c.techStack.some(t => t.toLowerCase().includes(q))
-  )
+  link: [{ rel: 'canonical', href: 'https://nlfts.dev/members' }]
 })
 </script>
 
-<!-- Ikon Sun & Moon -->
-<script lang="ts">
-const SunIcon = defineComponent({
-  setup() {
-    return () => h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      fill: 'none',
-      viewBox: '0 0 24 24',
-      stroke: 'currentColor',
-      class: 'w-5 h-5'
-    }, [
-      h('path', {
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'stroke-width': 2,
-        d: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z'
-      })
-    ])
-  }
-})
-
-const MoonIcon = defineComponent({
-  setup() {
-    return () => h('svg', {
-      xmlns: 'http://www.w3.org/2000/svg',
-      fill: 'none',
-      viewBox: '0 0 24 24',
-      stroke: 'currentColor',
-      class: 'w-5 h-5'
-    }, [
-      h('path', {
-        'stroke-linecap': 'round',
-        'stroke-linejoin': 'round',
-        'stroke-width': 2,
-        d: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z'
-      })
-    ])
-  }
-})
-</script>
-
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>

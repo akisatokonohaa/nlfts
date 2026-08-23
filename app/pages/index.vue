@@ -1,5 +1,216 @@
 <script setup lang="ts">
 import gsap from 'gsap'
+import { ref, onMounted, onBeforeUnmount } from 'vue'
+
+const hero = ref(null)
+
+const neverOneChars = ['N', 'e', 'v', 'e', 'r']
+const sayChars = ['S', 'a', 'y']
+const neverTwoChars = ['N', 'e', 'v', 'e', 'r']
+
+let ctx
+
+onMounted(() => {
+  ctx = gsap.context(() => {
+    const neverOne = gsap.utils.toArray('.never-one-char')
+    const say = gsap.utils.toArray('.say-char')
+    const neverTwo = gsap.utils.toArray('.never-two-char')
+
+    /*
+     * Initial state
+     */
+    gsap.set(neverOne, {
+      x: -80,
+      opacity: 0,
+    })
+
+    gsap.set(say, {
+      y: -100,
+      opacity: 0,
+    })
+
+    gsap.set(neverTwo, {
+      opacity: 0,
+      filter: 'blur(18px)',
+      y: 0,
+    })
+
+    /*
+     * MASTER TIMELINE
+     */
+    const tl = gsap.timeline({
+      defaults: {
+        ease: 'power3.out',
+      },
+    })
+
+    /*
+     * 1. NEVER
+     *
+     * Setiap huruf datang dari kiri.
+     * Ada sedikit overlap sehingga terasa seperti
+     * huruf berikutnya "keluar" dari huruf sebelumnya.
+     */
+    tl.to(neverOne, {
+      x: 0,
+      opacity: 1,
+      duration: 0.55,
+      stagger: 0.14,
+      ease: 'power3.out',
+    })
+
+    /*
+     * 2. SAY
+     *
+     * Muncul dari atas ke bawah.
+     */
+    tl.to(
+      say,
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.65,
+        stagger: 0.1,
+        ease: 'power4.out',
+      },
+      '+=0.15'
+    )
+
+    /*
+     * Y GLITCH
+     *
+     * Karena Y adalah index 2.
+     */
+    const y = say[2]
+
+    tl.to(
+      y,
+      {
+        keyframes: [
+          {
+            opacity: 0.2,
+            x: -5,
+            skewX: -12,
+            duration: 0.05,
+          },
+          {
+            opacity: 1,
+            x: 4,
+            skewX: 8,
+            duration: 0.04,
+          },
+          {
+            opacity: 0.15,
+            x: -3,
+            skewX: -5,
+            duration: 0.05,
+          },
+          {
+            opacity: 1,
+            x: 0,
+            skewX: 0,
+            duration: 0.06,
+          },
+        ],
+      },
+      '+=0.05'
+    )
+
+    /*
+     * Sedikit glitch kedua supaya tidak
+     * terasa seperti animasi biasa.
+     */
+    tl.to(
+      y,
+      {
+        keyframes: [
+          {
+            opacity: 0.4,
+            x: 3,
+            duration: 0.04,
+          },
+          {
+            opacity: 1,
+            x: -2,
+            duration: 0.04,
+          },
+          {
+            opacity: 0.1,
+            x: 0,
+            duration: 0.035,
+          },
+          {
+            opacity: 1,
+            duration: 0.05,
+          },
+        ],
+      },
+      '+=0.08'
+    )
+
+    /*
+     * 3. NEVER KEDUA
+     *
+     * Ganjil:
+     * N, v, r -> dari atas
+     *
+     * Genap:
+     * e, e -> dari bawah
+     *
+     * Semua dimulai dengan blur.
+     */
+    neverTwo.forEach((char, index) => {
+      const fromY = index % 2 === 0 ? -100 : 100
+
+      tl.to(
+        char,
+        {
+          y: fromY,
+          opacity: 0,
+          filter: 'blur(18px)',
+          duration: 0,
+        },
+        '<'
+      )
+    })
+
+    tl.to(
+      neverTwo,
+      {
+        y: 0,
+        opacity: 1,
+        filter: 'blur(0px)',
+        duration: 0.8,
+        stagger: {
+          each: 0.12,
+          from: 'start',
+        },
+        ease: 'power4.out',
+      },
+      '+=0.12'
+    )
+
+    /*
+     * Tambahkan sedikit settle effect
+     * pada Never terakhir.
+     */
+    tl.to(
+      neverTwo,
+      {
+        y: 0,
+        scale: 1,
+        duration: 0.25,
+        stagger: 0.03,
+        ease: 'power2.out',
+      },
+      '>-0.15'
+    )
+  }, hero.value)
+})
+
+onBeforeUnmount(() => {
+  ctx?.revert()
+})
 
 // SEO Implementation
 useSeoMeta({
@@ -37,18 +248,75 @@ const toggleVideo = () => {
 <template>
 <main>
   <div class="relative overflow-hidden bg-[#ededed] text-gray-950 dark:bg-[#090909] dark:text-white">
-  <!-- Hero Section -->
-  <section class="relative mx-1 mt-4 overflow-hidden rounded-[18px] bg-[#111111] px-4 pb-24 pt-12 text-white transition-colors duration-500 sm:mx-3 sm:mt-5 sm:pb-32 sm:pt-16">
-    <div class="relative z-10 mx-auto flex max-w-[1500px] flex-col items-center text-center">
+      <section
+    ref="hero"
+    class="relative mx-1 mt-4 overflow-hidden rounded-[18px] bg-[#111111] px-4 pb-24 pt-12 text-white transition-colors duration-500 sm:mx-3 sm:mt-5 sm:pb-32 sm:pt-16"
+  >
+    <div
+      class="relative z-10 mx-auto flex max-w-[1500px] flex-col items-center text-center"
+    >
       <div class="flex items-center gap-3 text-sm font-medium sm:gap-4 sm:text-base">
-        <span>World of the Day</span>
-        <span class="rounded border border-zinc-400 px-2 py-1 font-normal leading-none dark:border-zinc-600">Aug 22, 2026</span>
-        <span class="hidden sm:inline"> Developer Community</span>
-      </div>
+        <span>Nuxt Indonesia</span>
 
-      <h1 class="mt-12 max-w-[1200px] text-[clamp(4.25rem,11.8vw,11.5rem)] font-bold uppercase leading-[0.83] tracking-[-0.07em] sm:mt-14">
-        <span class="block">Never Say</span>
-        <span class="block">Never</span>
+        <span
+          class="rounded border border-zinc-400 px-2 py-1 font-normal leading-none dark:border-zinc-600"
+        >
+          Aug 22, 2026
+        </span>
+
+        <span class="hidden sm:inline">
+          Developer Community
+        </span>
+      </div>
+      <h1
+        class="mt-12 max-w-[1200px] text-[clamp(4.25rem,11.8vw,11.5rem)] font-bold uppercase leading-[0.83] tracking-[-0.07em] sm:mt-14"
+      >
+        <!-- BARIS PERTAMA: Never Say -->
+        <span class="flex items-baseline justify-center whitespace-nowrap">
+          <!-- NEVER -->
+          <span
+            ref="neverOne"
+            aria-label="Never"
+          >
+            <span
+              v-for="(char, index) in neverOneChars"
+              :key="`never-one-${index}`"
+              class="never-one-char inline-block"
+            >
+              {{ char }}
+            </span>
+          </span>
+
+          <!-- SAY -->
+          <span
+            ref="say"
+            class="ml-[0.08em]"
+            aria-label="Say"
+          >
+            <span
+              v-for="(char, index) in sayChars"
+              :key="`say-${index}`"
+              class="say-char inline-block"
+            >
+              {{ char }}
+            </span>
+          </span>
+        </span>
+
+        <!-- BARIS KEDUA: Never -->
+        <span
+          ref="neverTwo"
+          class="mt-1 block whitespace-nowrap"
+          aria-label="Never"
+        >
+          <span
+            v-for="(char, index) in neverTwoChars"
+            :key="`never-two-${index}`"
+            class="never-two-char inline-block"
+          >
+            {{ char }}
+          </span>
+        </span>
       </h1>
     </div>
   </section>
@@ -76,8 +344,8 @@ const toggleVideo = () => {
 
       <article class="relative flex min-h-[300px] flex-col justify-end rounded-[6px] border border-zinc-300 bg-white p-7 dark:border-zinc-700/70 dark:bg-[#151515] lg:col-span-4 lg:row-span-1">
         <div class="max-w-[300px]">
-          <h2 class="text-base font-semibold tracking-tight">Website aman sejak awal</h2>
-          <p class="mt-2 text-sm leading-[1.25] text-zinc-600 dark:text-zinc-400">Pelajari praktik keamanan modern, performa web, dan arsitektur yang tangguh agar setiap produk digital siap tumbuh sejak hari pertama.</p>
+          <h2 class="text-base font-semibold tracking-tight">Ruang diskusi private ( non-kompromi )</h2>
+          <p class="mt-2 text-sm leading-[1.25] text-zinc-600 dark:text-zinc-400">Ruang privat untuk diskusi terbuka, pertukaran ide, dan perdebatan teknis tanpa kompromi terhadap kualitas maupun kebebasan berpikir.</p>
         </div>
       </article>
 
