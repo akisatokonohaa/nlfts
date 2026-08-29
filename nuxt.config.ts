@@ -12,27 +12,12 @@ export default defineNuxtConfig({
     enabled: true
   },
 
-  // Global SEO defaults — overridden per-page with useSeoMeta()
+  // Global SEO defaults are managed cleanly in app.vue via useHead and useSeoMeta
   app: {
     head: {
       htmlAttrs: { lang: 'id' },
       charset: 'utf-8',
-      viewport: 'width=device-width, initial-scale=1',
-      meta: [
-        { name: 'theme-color', content: '#09090b' },
-        { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' },
-        { name: 'author', content: 'NLFTs — Komunitas Developer Indonesia' },
-        { name: 'keywords', content: 'NLFTs, komunitas developer Indonesia, komunitas IT Bandung, Nuxt komunitas, Vue developer Indonesia, open source Indonesia, komunitas programmer, belajar coding Indonesia, web developer Indonesia, komunitas teknologi' },
-        { property: 'og:site_name', content: 'NLFTs' },
-        { property: 'og:locale', content: 'id_ID' },
-        { name: 'twitter:site', content: '@nlfts' },
-        { name: 'twitter:creator', content: '@nlfts' },
-      ],
-      link: [
-        { rel: 'canonical', href: 'https://nlfts.dev' },
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'alternate', type: 'application/rss+xml', title: 'NLFTs Blog RSS', href: 'https://nlfts.dev/rss.xml' },
-      ]
+      viewport: 'width=device-width, initial-scale=1'
     }
   },
 
