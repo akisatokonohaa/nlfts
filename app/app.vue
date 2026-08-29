@@ -12,12 +12,12 @@ useHead(() => ({
     { charset: 'utf-8' },
     { name: 'viewport', content: 'width=device-width, initial-scale=1' },
     { key: 'theme-color', name: 'theme-color', content: color.value },
-    { name: 'application-name', content: 'NLFTs' },
-    { name: 'author', content: 'NLFTs' },
-    { name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' },
-
-    { name: 'docsearch:language', content: 'id' },
-    { name: 'docsearch:version', content: '1.0.0' },
+    { key: 'application-name', name: 'application-name', content: 'NLFTs' },
+    { key: 'author', name: 'author', content: 'NLFTs — Komunitas Developer Indonesia' },
+    { key: 'keywords', name: 'keywords', content: 'NLFTs, komunitas developer Indonesia, komunitas IT Bandung, Nuxt komunitas, Vue developer Indonesia, open source Indonesia, komunitas programmer, belajar coding Indonesia, web developer Indonesia, komunitas teknologi' },
+    { key: 'robots', name: 'robots', content: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' },
+    { key: 'docsearch:language', name: 'docsearch:language', content: 'id' },
+    { key: 'docsearch:version', name: 'docsearch:version', content: '1.0.0' }
   ],
 
   link: [
