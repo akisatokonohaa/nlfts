@@ -2,6 +2,26 @@
 import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import gsap from 'gsap'
 
+const {
+  user,
+  profile,
+  username,
+  fullName,
+  avatarUrl,
+  isLoggingIn,
+  loginWithGitHub,
+  logout,
+  initAuth
+} = useAuth()
+
+const isUserMenuOpen = ref(false)
+const userMenuRef = ref<HTMLElement>()
+
+const handleDocumentClick = (event: MouseEvent) => {
+  if (userMenuRef.value && !userMenuRef.value.contains(event.target as Node)) {
+    isUserMenuOpen.value = false
+  }
+}
 
 const upcomingEvents = [
   { day: '404', month: '', title: 'Tidak Ada Event', location: 'Bersih' },
@@ -147,6 +167,8 @@ const toggleMobileSection = (key: string) => {
 
 // ── Lifecycle ───────────────────────────────────────
 onMounted(() => {
+  initAuth()
+  document.addEventListener('click', handleDocumentClick)
   ctx = gsap.context(() => {
     gsap.from('.nav-enter', {
       opacity: 0, y: -4, stagger: 0.02, duration: 0.4, ease: 'power2.out', delay: 0.05
@@ -158,6 +180,7 @@ const isSearchOpen = useState('search-open')
 const toggleSearch = () => { isSearchOpen.value = true }
 
 onUnmounted(() => {
+  document.removeEventListener('click', handleDocumentClick)
   ctx?.revert()
   clearTimeout(closeTimeout)
   document.body.style.overflow = ''
@@ -288,8 +311,77 @@ const exploreQuickLinks = [
             </div>
           </button>
 
-          <div class="hidden xl:flex items-center gap-5 whitespace-nowrap">
-            <NuxtLink to="/terhubung" class="inline-flex h-[52px] items-center rounded-[11px] border border-zinc-900 px-6 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-900 dark:border-zinc-300 dark:text-zinc-100 dark:hover:bg-white dark:hover:text-zinc-900">Bergabung</NuxtLink>
+          <div class="hidden xl:flex items-center gap-3 whitespace-nowrap">
+            <NuxtLink to="/terhubung" class="inline-flex h-[52px] items-center rounded-[11px] border border-zinc-900 px-6 text-sm font-semibold text-zinc-900 transition-colors hover:bg-zinc-900 hover:text-white dark:border-zinc-300 dark:text-zinc-100 dark:hover:bg-white dark:hover:text-zinc-900">Bergabung</NuxtLink>
+
+            <!-- Login GitHub Button (Ketika belum login) -->
+            <button
+              v-if="!user"
+              type="button"
+              class="inline-flex h-[52px] items-center justify-center gap-2 rounded-[11px] border border-[#238636] bg-[#238636] hover:bg-[#2ea043] px-6 text-sm font-semibold text-white shadow-sm transition-all duration-200 cursor-pointer active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed"
+              :disabled="isLoggingIn"
+              @click="loginWithGitHub"
+            >
+              <UIcon v-if="isLoggingIn" name="i-lucide-loader-2" class="w-4 h-4 animate-spin text-white" />
+              <UIcon v-else name="i-simple-icons-github" class="w-4 h-4 text-white" />
+              <span>{{ isLoggingIn ? 'Menghubungkan...' : 'Login' }}</span>
+            </button>
+
+            <!-- User Profile Bulat + Dropdown Logout (Ketika sudah login) -->
+            <div v-else ref="userMenuRef" class="relative">
+              <button
+                type="button"
+                class="group relative flex h-[52px] w-[52px] items-center justify-center rounded-full transition-all focus:outline-none cursor-pointer"
+                aria-label="Menu Pengguna"
+                @click="isUserMenuOpen = !isUserMenuOpen"
+              >
+                <img
+                  :src="avatarUrl || `https://github.com/${username || 'ghost'}.png`"
+                  :alt="fullName || username || 'Profile'"
+                  class="h-[46px] w-[46px] rounded-full object-cover ring-2 ring-zinc-200 hover:ring-[#238636] dark:ring-zinc-800 dark:hover:ring-[#2ea043] transition-all duration-200 shadow-sm"
+                  @error="(e: Event) => { (e.target as HTMLImageElement).src = 'https://github.com/ghost.png' }"
+                />
+                <span class="absolute bottom-1 right-1 h-3 w-3 rounded-full bg-[#238636] ring-2 ring-white dark:ring-black" />
+              </button>
+
+              <!-- Dropdown Menu Logout -->
+              <Transition
+                enter-active-class="transition duration-150 ease-out"
+                enter-from-class="transform scale-95 opacity-0"
+                enter-to-class="transform scale-100 opacity-100"
+                leave-active-class="transition duration-100 ease-in"
+                leave-from-class="transform scale-100 opacity-100"
+                leave-to-class="transform scale-95 opacity-0"
+              >
+                <div
+                  v-if="isUserMenuOpen"
+                  class="absolute right-0 top-full mt-2 w-56 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0a0a0a] p-1.5 shadow-xl shadow-black/10 dark:shadow-black/40 z-50"
+                >
+                  <div class="flex items-center gap-3 px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-900">
+                    <img
+                      :src="avatarUrl || `https://github.com/${username || 'ghost'}.png`"
+                      :alt="username"
+                      class="h-9 w-9 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-800"
+                    />
+                    <div class="min-w-0 flex-1">
+                      <p class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">{{ fullName }}</p>
+                      <p class="text-[11px] text-zinc-400 truncate">@{{ username }}</p>
+                    </div>
+                  </div>
+
+                  <div class="pt-1">
+                    <button
+                      type="button"
+                      class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
+                      @click="logout(); isUserMenuOpen = false;"
+                    >
+                      <UIcon name="i-lucide-log-out" class="w-4 h-4" />
+                      <span>Logout</span>
+                    </button>
+                  </div>
+                </div>
+              </Transition>
+            </div>
           </div>
 
           <UColorModeButton size="sm" class="hidden lg:flex text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-zinc-50 bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border-none shadow-none" />
@@ -530,6 +622,53 @@ const exploreQuickLinks = [
             </div>
           </div>
 
+        </div>
+
+        <!-- Mobile Auth Actions -->
+        <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-900">
+          <div v-if="!user" class="grid grid-cols-2 gap-2">
+            <NuxtLink
+              to="/terhubung"
+              class="flex items-center justify-center py-2.5 px-3 text-xs font-semibold rounded-lg border border-zinc-900 text-zinc-900 dark:border-zinc-700 dark:text-zinc-100 transition-colors"
+              @click="closeMobile"
+            >
+              Bergabung
+            </NuxtLink>
+            <button
+              type="button"
+              class="flex items-center justify-center gap-1.5 py-2.5 px-3 text-xs font-semibold rounded-lg bg-[#238636] hover:bg-[#2ea043] text-white transition-colors cursor-pointer disabled:opacity-75"
+              :disabled="isLoggingIn"
+              @click="loginWithGitHub(); closeMobile();"
+            >
+              <UIcon v-if="isLoggingIn" name="i-lucide-loader-2" class="w-3.5 h-3.5 animate-spin" />
+              <UIcon v-else name="i-simple-icons-github" class="w-3.5 h-3.5" />
+              <span>Login</span>
+            </button>
+          </div>
+
+          <div v-else class="flex items-center justify-between p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img
+                :src="avatarUrl || `https://github.com/${username || 'ghost'}.png`"
+                :alt="username"
+                class="h-8 w-8 rounded-full object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shrink-0"
+                @error="(e: Event) => { (e.target as HTMLImageElement).src = 'https://github.com/ghost.png' }"
+              />
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">{{ fullName }}</p>
+                <p class="text-[10px] text-zinc-400 truncate">@{{ username }}</p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              class="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
+              @click="logout(); closeMobile();"
+            >
+              <UIcon name="i-lucide-log-out" class="w-3.5 h-3.5" />
+              <span>Logout</span>
+            </button>
+          </div>
         </div>
 
         <!-- Footer -->
