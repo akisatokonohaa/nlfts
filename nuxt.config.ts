@@ -24,9 +24,12 @@ export default defineNuxtConfig({
   runtimeConfig: {
     turnstileSecretKey: process.env.SECRET_KEY || '',
     resendApiKey: process.env.RESEND_API_KEY || '',
+    supabaseSecretKey: process.env.SECRET_SUPA_KEY || '',
     public: {
       turnstileSiteKey: process.env.SITE_KEY || '',
-      unsplashAccessKey: process.env.NUXT_PUBLIC_UNSPLASH_ACCESS_KEY || ''
+      unsplashAccessKey: process.env.NUXT_PUBLIC_UNSPLASH_ACCESS_KEY || '',
+      supabaseUrl: process.env.PROJECT_URL || process.env.SUPABASE_URL || '',
+      supabaseAnonKey: process.env.PUBLISHABLE_KEY || process.env.SUPABASE_KEY || ''
     }
   },
 
@@ -44,8 +47,6 @@ export default defineNuxtConfig({
       xl: 1280,
       xxl: 1536
     },
-    // Allow optimization of external images (GitHub avatars, vectorlogo.zone)
-    domains: ['avatars.githubusercontent.com', 'www.vectorlogo.zone', 'i.pravatar.cc'],
     // ipx provider for local static images
     provider: 'ipx'
   },
@@ -57,10 +58,21 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    // API routes: SSR only (cannot prerender)
-    '/api/**': { prerender: false },
-    // Contact page: SSR (has form + API + Turnstile)
-    '/contact': { prerender: false },
+    // IPX and Auth routes: dynamic SSR/client only (jangan prerender ke disk)
+    '/_ipx/**': { prerender: false },
+    '/auth/**': {
+      prerender: false,
+      headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' }
+    },
+    '/api/**': {
+      prerender: false,
+      headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' }
+    },
+    // Contact page: SSR (has form + API + Turnstile, jangan di-cache)
+    '/contact': {
+      prerender: false,
+      headers: { 'cache-control': 'no-store, no-cache, must-revalidate, max-age=0' }
+    },
     // Docs redirect: SSR
     '/docs': { redirect: '/docs/getting-started', prerender: false },
     // All other routes: SSG (prerendered)
@@ -87,6 +99,7 @@ export default defineNuxtConfig({
   nitro: {
     prerender: {
       failOnError: false,
+      ignore: ['/_ipx'],
       routes: [
         '/',
         '/blog',
