@@ -140,7 +140,7 @@ id: 3,
 col: 0,
 name: 'Naufal Hidayat',
 role: 'Full Stack Engineer',
-avatar: 'https://i.pravatar.cc/80?img=9',
+avatar: 'https://avatars.githubusercontent.com/u/100000000?v=4',
 text: `Di sini saya menemukan lingkungan yang mendorong saya untuk terus berkembang. Setiap anggota memiliki semangat untuk belajar, membangun, dan berbagi pengalaman teknis tingkat lanjut.`
 },
 
